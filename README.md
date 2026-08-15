@@ -39,6 +39,10 @@ See [`packages/python-sdk/README.md`](./packages/python-sdk/README.md) and
 surface — governed queries, connectors, simulations, agent runs, repository
 intelligence, and the local `Runtime` facade.
 
+Runnable integration examples (LangGraph, ChatGPT Actions, n8n, Zapier, Power
+Automate, Make, Azure AI Studio, Claude Desktop, Google Colab, and more) live
+in [`examples/`](./examples).
+
 ## License boundary
 
 This repository contains Algenta's client SDKs and is licensed under
