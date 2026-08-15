@@ -43,21 +43,56 @@ Runnable integration examples (LangGraph, ChatGPT Actions, n8n, Zapier, Power
 Automate, Make, Azure AI Studio, Claude Desktop, Google Colab, and more) live
 in [`examples/`](./examples).
 
-## License boundary
+## What is open source?
 
-This repository contains Algenta's client SDKs and is licensed under
-**Apache-2.0** (see [LICENSE](./LICENSE) / [NOTICE](./NOTICE)). The **Algenta
-Engine/runtime is separately distributed and subject to the Algenta Engine
-license** — it is not included here, and nothing in this repository grants
-rights to it.
+This repository contains Algenta's Python and TypeScript client SDKs. The
+SDK source is licensed under **Apache-2.0** (see [LICENSE](./LICENSE) /
+[NOTICE](./NOTICE)).
+
+**The Algenta Engine/runtime is separate software and is not contained in
+this repository.** Engine licensing, device entitlements, worker limits,
+concurrency limits, and Server Compute Units are enforced independently by
+the engine, subject to the separate Algenta Engine license.
 
 The SDK is a plain HTTP client. It holds no license-signing keys, no
 entitlement-enforcement logic, and no secret shared with the engine — every
 entitlement claim is independently verified and enforced by the closed
 engine, never by this SDK. Fork it, delete every check in it, or replace it
-with your own HTTP client entirely — none of that can grant additional
-licensed capacity on an Algenta Engine. See [SECURITY.md](./SECURITY.md) for
-what that means for vulnerability reports.
+with your own HTTP client entirely — **modifying or replacing this SDK does
+not change the execution capacity licensed to an Algenta Engine.** See
+[SECURITY.md](./SECURITY.md) for what that means for vulnerability reports.
+
+Algenta does not require hosted inference or telemetry for execution. Paid
+licenses expand local execution and governance capacity rather than
+charging per SDK call.
+
+## Local execution
+
+Algenta workloads execute against the Algenta Engine running in your own
+infrastructure. This SDK is the developer interface to that local runtime —
+it is not a hosted inference service, and no request data passes through
+Algenta-operated servers to use it.
+
+See [docs.algenta.ai](https://docs.algenta.ai) for connected and fully
+air-gapped activation profiles.
+
+## Verify a release
+
+Every release built by [`release.yml`](./.github/workflows/release.yml) is
+tied to:
+
+- a protected `sdk-vX.Y.Z` source tag in this repository;
+- the exact commit that tag points to;
+- a release-authorization record, signed by Algenta's private engine repo's
+  test suite, binding that commit + a contract-file digest to the version
+  being released (see [`releases/`](./releases));
+- npm/PyPI Trusted Publishing provenance, since publishing runs from this
+  public repository's own workflow rather than a private one — which is
+  what lets the registries attest to it at all.
+
+`release.yml` refuses to build or publish anything unless all of the above
+independently agree — see
+[`scripts/verify_release_authorization.py`](./scripts/verify_release_authorization.py).
 
 ## Contributing
 
