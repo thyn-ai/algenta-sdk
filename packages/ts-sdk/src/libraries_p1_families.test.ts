@@ -69,11 +69,12 @@ const CONTRACT_PATH = resolve(
 );
 
 // CONTRACT_PATH points at the proprietary Algenta Engine's full function catalog
-// (packages/algenta, the closed-source runtime/CLI) — that package is deliberately not part of
-// this public repository, so the file this suite reads is never present here. Skip rather than
-// fail: this checks SDK-to-proprietary-engine reachability, which is only meaningful inside the
-// private monorepo where both sides exist together. Nothing about the TypeScript SDK itself is
-// untested by skipping this — see the rest of this file's suite for that.
+// (packages/algenta, the closed-source runtime/CLI). This file is mirrored into the public
+// thyn-ai/algenta-sdk repo, which deliberately never contains packages/algenta — so there,
+// CONTRACT_PATH never resolves. Skip rather than fail: this checks SDK-to-proprietary-engine
+// reachability, which is only meaningful where both sides exist together (this repo). Nothing
+// about the TypeScript SDK itself is untested by skipping this — see the rest of this file's
+// suite for that.
 const hasContract = existsSync(CONTRACT_PATH);
 
 function loadContract(): RuntimeContract {
