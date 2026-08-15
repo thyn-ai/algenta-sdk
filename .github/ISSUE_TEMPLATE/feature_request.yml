@@ -1,0 +1,20 @@
+name: API capability request
+description: >-
+  Request a new capability the SDK doesn't expose today. Most new
+  capabilities require a change on Algenta's private API first — see
+  CONTRIBUTING.md's "API capability requests" section.
+labels: ["capability-request"]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What capability do you want?
+      description: Describe the use case, not just the API shape you'd guess at.
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why isn't an existing method sufficient?
+    validations:
+      required: false

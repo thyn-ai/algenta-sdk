@@ -1,0 +1,10 @@
+Algenta SDK
+Copyright the Algenta SDK contributors and Algenta, Inc.
+
+This product is licensed under the Apache License, Version 2.0. See LICENSE
+for the full license text.
+
+This repository contains Algenta's client SDKs (Python and TypeScript) only.
+The Algenta Engine and runtime are separately distributed and are not
+included here; they are subject to the Algenta Engine license, not
+Apache-2.0.
