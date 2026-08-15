@@ -1,0 +1,35 @@
+# Metadata-only CLA check. This workflow must NEVER check out the
+# contributor's branch or run any contributor-controlled script — it only
+# records/verifies a signature and comments on the PR. Do not add a
+# `actions/checkout` step with `ref: ${{ github.event.pull_request.head.sha }}`
+# to this file; that would execute fork-controlled refs in a context that
+# has write access to PRs.
+name: cla-check
+
+on:
+  pull_request_target:
+    types: [opened, closed, synchronize]
+  issue_comment:
+    types: [created]
+
+permissions:
+  # Only what's needed to read the PR and post/update a status comment —
+  # nothing broader, and specifically no `contents` access.
+  pull-requests: write
+  statuses: write
+
+jobs:
+  cla-check:
+    runs-on: ubuntu-latest
+    steps:
+      # TODO: pin to the exact current release commit SHA of
+      # contributor-assistant/github-action before this file is used for
+      # real — do not fabricate or guess a SHA here.
+      - uses: contributor-assistant/github-action@__PIN_EXACT_SHA_BEFORE_USE__
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          path-to-signatures: signatures/version1/cla.json
+          path-to-document: https://github.com/thyn-ai/algenta-sdk/blob/main/CLA.md
+          branch: cla-signatures
+          allowlist: dependabot[bot],algenta-sdk-sync[bot]
