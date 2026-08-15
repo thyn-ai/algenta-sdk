@@ -75,3 +75,36 @@ def test_error_response_raises_a_decision_engine_error() -> None:
 
     with pytest.raises(DecisionEngineError):
         client.list_datasets()
+
+
+@respx.mock
+def test_error_response_carries_a_request_id_from_the_body() -> None:
+    client = AlgentaClient(api_key="de_live_test_key", base_url="https://api.algenta.ai")
+    respx.get("https://api.algenta.ai/v1/data").mock(
+        return_value=Response(
+            404,
+            json={"error": {"message": "not found"}, "request_id": "req_abc123"},
+        )
+    )
+
+    with pytest.raises(DecisionEngineError) as exc_info:
+        client.list_datasets()
+
+    assert exc_info.value.request_id == "req_abc123"
+
+
+@respx.mock
+def test_error_response_falls_back_to_the_request_id_header() -> None:
+    client = AlgentaClient(api_key="de_live_test_key", base_url="https://api.algenta.ai")
+    respx.get("https://api.algenta.ai/v1/data").mock(
+        return_value=Response(
+            404,
+            json={"error": {"message": "not found"}},
+            headers={"X-Request-Id": "req_from_header"},
+        )
+    )
+
+    with pytest.raises(DecisionEngineError) as exc_info:
+        client.list_datasets()
+
+    assert exc_info.value.request_id == "req_from_header"
