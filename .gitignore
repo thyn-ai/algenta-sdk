@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Node / TypeScript
+node_modules/
+packages/ts-sdk/dist/
+*.tsbuildinfo
+npm-debug.log*
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+
+# Generated at release build time — never committed, see release-sdks.yml
+# in the engine repo and this repo's own CONTRIBUTING.md.
+**/_build_info.py
+**/_build_info.ts
