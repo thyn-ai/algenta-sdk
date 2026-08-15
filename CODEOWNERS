@@ -1,0 +1,16 @@
+# See https://docs.github.com/articles/about-codeowners for syntax.
+# Order matters — later matches take precedence, so the generated-contract
+# rules (most specific) are listed after the package-wide rules.
+
+/packages/python-sdk/ @thyn-ai/python-sdk-maintainers
+/packages/ts-sdk/     @thyn-ai/ts-sdk-maintainers
+
+# Generated contract snapshots — regenerated internally, never hand-edited.
+# Routing these to a distinct team means any PR touching them (accidentally
+# or otherwise) gets an extra, deliberate review gate rather than being
+# mergeable by a regular SDK maintainer alone.
+/packages/python-sdk/decision_engine/_contract.py @thyn-ai/platform-contract-owners
+/packages/ts-sdk/src/contract.ts                  @thyn-ai/platform-contract-owners
+
+# Workflow files are as security-sensitive as the code they run.
+/.github/ @thyn-ai/ts-sdk-maintainers @thyn-ai/python-sdk-maintainers
