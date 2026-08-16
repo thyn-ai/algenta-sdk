@@ -18,7 +18,10 @@ permissions:
 
 jobs:
   python-sdk:
-    runs-on: ubuntu-latest
+    # Org-wide self-hosted fleet (org variable RUNNER_LABELS); GitHub-hosted
+    # runners are billing-blocked for this org. This lane is secret-free by
+    # design (untrusted fork PRs), matching the engine repo's posture.
+    runs-on: ${{ fromJSON(vars.RUNNER_LABELS) }}
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
         with:
@@ -31,7 +34,7 @@ jobs:
       - run: ruff check packages/python-sdk
 
   ts-sdk:
-    runs-on: ubuntu-latest
+    runs-on: ${{ fromJSON(vars.RUNNER_LABELS) }}
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
         with:
@@ -55,7 +58,7 @@ jobs:
   # "<slug>[bot]" login set by GitHub itself) — never on a commit author
   # string, which any contributor can set to anything.
   contract-drift-check:
-    runs-on: ubuntu-latest
+    runs-on: ${{ fromJSON(vars.RUNNER_LABELS) }}
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
         with:

@@ -34,7 +34,7 @@ permissions:
 jobs:
   verify-authorization:
     name: verify release authorization (D0 -- gates everything below)
-    runs-on: ubuntu-latest
+    runs-on: ${{ fromJSON(vars.RUNNER_LABELS) }}
     outputs:
       version: ${{ steps.version.outputs.version }}
     steps:
@@ -72,7 +72,7 @@ jobs:
   build:
     name: build the exact authorized source
     needs: verify-authorization
-    runs-on: ubuntu-latest
+    runs-on: ${{ fromJSON(vars.RUNNER_LABELS) }}
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
         with:
@@ -167,7 +167,7 @@ jobs:
   publish-pypi:
     name: publish to PyPI (Trusted Publishing, OIDC)
     needs: [verify-authorization, build]
-    runs-on: ubuntu-latest
+    runs-on: ${{ fromJSON(vars.RUNNER_LABELS) }}
     environment: pypi
     permissions:
       id-token: write # required for PyPI Trusted Publishing
@@ -188,7 +188,7 @@ jobs:
   publish-npm:
     name: publish to npm (Trusted Publishing, OIDC provenance)
     needs: [verify-authorization, build]
-    runs-on: ubuntu-latest
+    runs-on: ${{ fromJSON(vars.RUNNER_LABELS) }}
     environment: npm
     permissions:
       id-token: write # required for npm provenance / Trusted Publishing
@@ -224,7 +224,7 @@ jobs:
   publish-github-release:
     name: attach the release manifest to a GitHub Release
     needs: [verify-authorization, build, publish-pypi, publish-npm]
-    runs-on: ubuntu-latest
+    runs-on: ${{ fromJSON(vars.RUNNER_LABELS) }}
     permissions:
       contents: write
     steps:
