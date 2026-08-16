@@ -1,26 +1,19 @@
 # Publishes algenta-sdk to PyPI and npm. This is the ONLY workflow, in either
 # thyn-ai/algenta (the private engine repo) or this repo, that ever runs
-# `twine upload` / `npm publish` for real -- see the approved SDK-repo
-# extraction plan's Step 4 amendment for why publish EXECUTION lives here
-# while release AUTHORITY stays with the private engine repo's full test
-# suite: npm/PyPI's native provenance only activates when the publishing
-# workflow itself runs from a public repository.
+# `twine upload` / `npm publish` for real.
 #
-# Release authority still belongs to thyn-ai/algenta: this workflow refuses
-# to build or publish anything unless releases/authorization/sdk-<tag>.json
+# Release authority belongs to thyn-ai/algenta: this workflow refuses to
+# build or publish anything unless releases/authorization/sdk-<tag>.json
 # (delivered here via the engine repo's sync mechanism, reviewed and merged
 # by a human like any other sync PR) verifies against the exact tag/commit
 # it's running against. See scripts/verify_release_authorization.py.
 #
-# TODO(owner): this workflow is safe to merge now but cannot successfully
-# publish until:
-#   - thyn-ai/algenta-sdk + this exact workflow filename + the `pypi`/`npm`
-#     environments below are registered as Trusted Publishers on pypi.org
-#     and npmjs.com (account-holder login required on both, cannot be done
-#     from a coding session).
-#   - A real signed sdk-v* tag + matching releases/authorization/ file
-#     actually exists (produced by the engine repo's sign-release-authorization
-#     job once that's wired up there).
+# Publish auth is the same PYPI_TOKEN / NPM_TOKEN every other package in the
+# org already publishes with (repo secrets on this repo). No OIDC/Trusted
+# Publisher registration involved.
+#
+# PREREQUISITE: repo secrets `PYPI_TOKEN` and `NPM_TOKEN` set on
+# thyn-ai/algenta-sdk.
 
 name: release
 
@@ -165,12 +158,10 @@ jobs:
           retention-days: 90
 
   publish-pypi:
-    name: publish to PyPI (Trusted Publishing, OIDC)
+    name: publish to PyPI (token)
     needs: [verify-authorization, build]
     runs-on: ubuntu-latest
-    environment: pypi
     permissions:
-      id-token: write # required for PyPI Trusted Publishing
       contents: read
     steps:
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
@@ -178,20 +169,20 @@ jobs:
           name: release-artifacts
           path: .
 
-      # TODO(owner): requires thyn-ai/algenta-sdk + release.yml + the `pypi`
-      # environment registered as a PyPI Trusted Publisher first.
-      - uses: pypa/gh-action-pypi-publish@cef221092ed1bacb1cc03d23a2d87d1d172e277b # v1.14.0
-        with:
-          packages-dir: packages/python-sdk/dist
-          skip-existing: true
+      - name: Publish
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+        run: |
+          set -euo pipefail
+          python -m pip install --quiet --disable-pip-version-check --upgrade "twine>=7"
+          twine upload --non-interactive --skip-existing packages/python-sdk/dist/*
 
   publish-npm:
-    name: publish to npm (Trusted Publishing, OIDC provenance)
+    name: publish to npm (token)
     needs: [verify-authorization, build]
     runs-on: ubuntu-latest
-    environment: npm
     permissions:
-      id-token: write # required for npm provenance / Trusted Publishing
       contents: read
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
@@ -205,6 +196,8 @@ jobs:
 
       - name: Rebuild and publish
         working-directory: packages/ts-sdk
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           set -euo pipefail
           npm ci --ignore-scripts
@@ -214,12 +207,8 @@ jobs:
           if [ "$PUBLISHED_VERSION" = "$VERSION" ]; then
             echo "algenta-sdk@$VERSION is already published; skipping."
           else
-            npm publish --provenance --access public
+            npm publish --access public
           fi
-        # TODO(owner): once npm Trusted Publishing is registered for this repo,
-        # this step needs no NODE_AUTH_TOKEN at all -- OIDC handles auth. Until
-        # then this job will fail at publish time, which is correct: it should
-        # not silently fall back to a stored token.
 
   publish-github-release:
     name: attach the release manifest to a GitHub Release

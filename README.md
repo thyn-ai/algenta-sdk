@@ -85,10 +85,7 @@ tied to:
 - the exact commit that tag points to;
 - a release-authorization record, signed by Algenta's private engine repo's
   test suite, binding that commit + a contract-file digest to the version
-  being released (see [`releases/`](./releases));
-- npm/PyPI Trusted Publishing provenance, since publishing runs from this
-  public repository's own workflow rather than a private one — which is
-  what lets the registries attest to it at all.
+  being released (see [`releases/`](./releases)).
 
 `release.yml` refuses to build or publish anything unless all of the above
 independently agree — see
