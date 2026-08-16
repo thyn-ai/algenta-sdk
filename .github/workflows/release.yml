@@ -34,7 +34,7 @@ permissions:
 jobs:
   verify-authorization:
     name: verify release authorization (D0 -- gates everything below)
-    runs-on: ubuntu-latest
+    runs-on: ${{ fromJSON(vars.RUNNER_LABELS) }}
     outputs:
       version: ${{ steps.version.outputs.version }}
     steps:
@@ -50,9 +50,14 @@ jobs:
           VERSION="${GITHUB_REF_NAME#sdk-v}"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
-      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
-        with:
-          python-version: "3.14"
+      # Python from the pre-provisioned runner tool cache: setup-python is unusable on
+      # self-hosted macOS (it hardcodes the GitHub-hosted /Users/runner/hostedtoolcache).
+      - name: Fleet Python 3.14 (pre-provisioned tool cache)
+        run: |
+          echo "$RUNNER_TOOL_CACHE/Python/3.14.7/arm64/bin" >> "$GITHUB_PATH"
+          # isolate jobs from the runner user's site-packages (stale leftovers there
+          # shadow/break freshly installed deps)
+          echo "PYTHONNOUSERSITE=1" >> "$GITHUB_ENV"
 
       - run: python -m pip install --quiet --disable-pip-version-check cryptography
 
@@ -72,15 +77,20 @@ jobs:
   build:
     name: build the exact authorized source
     needs: verify-authorization
-    runs-on: ubuntu-latest
+    runs-on: ${{ fromJSON(vars.RUNNER_LABELS) }}
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
         with:
           persist-credentials: false
 
-      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
-        with:
-          python-version: "3.14"
+      # Python from the pre-provisioned runner tool cache: setup-python is unusable on
+      # self-hosted macOS (it hardcodes the GitHub-hosted /Users/runner/hostedtoolcache).
+      - name: Fleet Python 3.14 (pre-provisioned tool cache)
+        run: |
+          echo "$RUNNER_TOOL_CACHE/Python/3.14.7/arm64/bin" >> "$GITHUB_PATH"
+          # isolate jobs from the runner user's site-packages (stale leftovers there
+          # shadow/break freshly installed deps)
+          echo "PYTHONNOUSERSITE=1" >> "$GITHUB_ENV"
 
       - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
         with:
@@ -167,7 +177,7 @@ jobs:
   publish-pypi:
     name: publish to PyPI (Trusted Publishing, OIDC)
     needs: [verify-authorization, build]
-    runs-on: ubuntu-latest
+    runs-on: ${{ fromJSON(vars.RUNNER_LABELS) }}
     environment: pypi
     permissions:
       id-token: write # required for PyPI Trusted Publishing
@@ -188,7 +198,7 @@ jobs:
   publish-npm:
     name: publish to npm (Trusted Publishing, OIDC provenance)
     needs: [verify-authorization, build]
-    runs-on: ubuntu-latest
+    runs-on: ${{ fromJSON(vars.RUNNER_LABELS) }}
     environment: npm
     permissions:
       id-token: write # required for npm provenance / Trusted Publishing
@@ -224,7 +234,7 @@ jobs:
   publish-github-release:
     name: attach the release manifest to a GitHub Release
     needs: [verify-authorization, build, publish-pypi, publish-npm]
-    runs-on: ubuntu-latest
+    runs-on: ${{ fromJSON(vars.RUNNER_LABELS) }}
     permissions:
       contents: write
     steps:
