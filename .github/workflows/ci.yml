@@ -58,19 +58,25 @@ jobs:
   # "<slug>[bot]" login set by GitHub itself) — never on a commit author
   # string, which any contributor can set to anything.
   contract-drift-check:
+    # PR-only: on a main push there is no base ref to diff against.
+    if: github.event_name == 'pull_request'
     runs-on: ${{ fromJSON(vars.RUNNER_LABELS) }}
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
         with:
           persist-credentials: false
-          fetch-depth: 0
       - name: Check whether this PR touches a generated contract file
         id: touched
+        env:
+          GH_TOKEN: ${{ github.token }}
+        # REST compare instead of `git fetch` + `git diff`: the checkout above is
+        # persist-credentials:false on purpose (untrusted fork PRs), so the runner holds no git
+        # credentials for this private repo and a fetch exits 128. The API call authenticates
+        # as the job token instead, without leaving anything in .git/config.
         run: |
-          git fetch origin "${{ github.event.pull_request.base.ref }}" --depth=1
-          if git diff --name-only "origin/${{ github.event.pull_request.base.ref }}"...HEAD \
-               -- packages/python-sdk/decision_engine/_contract.py packages/ts-sdk/src/contract.ts \
-               | grep -q .; then
+          if gh api "repos/${{ github.repository }}/compare/${{ github.event.pull_request.base.ref }}...${{ github.event.pull_request.head.sha }}" \
+               --paginate --jq '.files[].filename' \
+               | grep -qE '^packages/(python-sdk/decision_engine/_contract\.py|ts-sdk/src/contract\.ts)$'; then
             echo "touched=true" >> "$GITHUB_OUTPUT"
           else
             echo "touched=false" >> "$GITHUB_OUTPUT"
