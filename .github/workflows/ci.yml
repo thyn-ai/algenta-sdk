@@ -51,8 +51,12 @@ jobs:
       - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
         with:
           node-version: "20"
-          cache: npm
-          cache-dependency-path: packages/ts-sdk/package-lock.json
+          # setup-node's cache:npm tars up the runner's ENTIRE global npm cache dir every run.
+          # On a persistent self-hosted runner (not the GitHub-hosted ephemeral VM this feature
+          # assumes) that cache never resets between jobs across every repo the fleet serves, so
+          # it balloons unbounded -- observed at ~4GB for this one small package, real disk
+          # exhaustion on the runner host. Same fix as decision-engine's own ci.yml.
+          package-manager-cache: false
       - working-directory: packages/ts-sdk
         run: npm ci --ignore-scripts
       - working-directory: packages/ts-sdk
