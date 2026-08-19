@@ -27,9 +27,31 @@
 
 name: release
 
+# Two triggers, one gate:
+#
+# - push/tags is the designed path for all FUTURE releases: their tag commits
+#   branch from main, so the tagged tree already contains this workflow and
+#   tag-push runs it directly.
+#
+# - workflow_dispatch exists because tag-push runs resolve the workflow file
+#   from the TAGGED COMMIT, not the default branch. A tag pointing at a
+#   commit older than a release.yml fix can therefore never run the fixed
+#   copy via tag push -- that is exactly how sdk-v1.0.8 got stranded (its
+#   tag commit fa4aa8d1 predates the D0 read-from-main fix). Dispatching
+#   from main runs THIS file and checks out the requested tag, so such
+#   pre-fix tags can still be published through the exact same gate. The
+#   dispatch path is verified to behave identically: every job checks out
+#   the requested tag, and all provenance records the CHECKED-OUT commit
+#   (never github.sha, which on a dispatch run is main's tip).
 on:
   push:
     tags: ["sdk-v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Full tag to release, e.g. sdk-v1.0.8"
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -41,16 +63,47 @@ jobs:
     outputs:
       version: ${{ steps.version.outputs.version }}
     steps:
+      # Dispatch-only pre-flight, BEFORE any checkout: a bad tag input must
+      # fail loud here, never steer the run at some tree.
+      - name: Validate the requested tag (workflow_dispatch only)
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          GH_FETCH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ inputs.tag }}
+        run: |
+          set -euo pipefail
+          case "$RELEASE_TAG" in
+            sdk-v*) ;;
+            *) echo "::error::Invalid tag input '$RELEASE_TAG' -- must match sdk-v* (e.g. sdk-v1.0.8)." >&2; exit 1 ;;
+          esac
+          if printf '%s' "$RELEASE_TAG" | LC_ALL=C grep -qE '[^A-Za-z0-9._-]'; then
+            echo "::error::Invalid tag input '$RELEASE_TAG' -- contains characters outside [A-Za-z0-9._-]." >&2
+            exit 1
+          fi
+          if ! curl -sfL \
+              -H "Authorization: Bearer ${GH_FETCH_TOKEN}" \
+              -H "Accept: application/vnd.github+json" \
+              -o /dev/null \
+              "https://api.github.com/repos/${GITHUB_REPOSITORY}/git/refs/tags/${RELEASE_TAG}"; then
+            echo "::error::Tag '$RELEASE_TAG' does not exist on ${GITHUB_REPOSITORY} -- refusing to run." >&2
+            exit 1
+          fi
+
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
         with:
+          # tag push: github.ref IS the pushed tag; dispatch: check out the
+          # requested tag explicitly (the dispatch run itself sits on main).
+          ref: ${{ github.event_name == 'workflow_dispatch' && format('refs/tags/{0}', inputs.tag) || github.ref }}
           persist-credentials: false
           fetch-depth: 0
 
       - name: Resolve version from the tag
         id: version
+        env:
+          RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
         run: |
           set -euo pipefail
-          VERSION="${GITHUB_REF_NAME#sdk-v}"
+          VERSION="${RELEASE_TAG#sdk-v}"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
       # Python from the pre-provisioned runner tool cache: setup-python is unusable on
@@ -103,7 +156,9 @@ jobs:
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
         with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && format('refs/tags/{0}', inputs.tag) || github.ref }}
           persist-credentials: false
+          fetch-depth: 0
 
       # Python from the pre-provisioned runner tool cache: setup-python is unusable on
       # self-hosted macOS (it hardcodes the GitHub-hosted /Users/runner/hostedtoolcache).
@@ -120,22 +175,27 @@ jobs:
 
       - name: Record source-to-package provenance (build-info)
         # Generated at build time, never committed -- a commit can't contain its own SHA.
+        env:
+          RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
         run: |
           set -euo pipefail
-          SOURCE_COMMIT="${{ github.sha }}"
+          # HEAD is the checked-out tag commit in BOTH trigger paths. Never
+          # github.sha here: on a workflow_dispatch run github.sha is main's
+          # tip, which must not leak into release provenance.
+          SOURCE_COMMIT="$(git rev-parse HEAD)"
           BUILD_RUN="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           {
             echo '"""Generated at release build time. Not committed to git -- see release.yml."""'
             echo "SOURCE_REPO = \"https://github.com/${{ github.repository }}\""
             echo "SOURCE_COMMIT = \"$SOURCE_COMMIT\""
-            echo "SOURCE_TAG = \"${{ github.ref_name }}\""
+            echo "SOURCE_TAG = \"$RELEASE_TAG\""
             echo "BUILD_RUN = \"$BUILD_RUN\""
           } > packages/python-sdk/decision_engine/_build_info.py
           {
             echo "// Generated at release build time. Not committed to git -- see release.yml."
             echo "export const SOURCE_REPO = \"https://github.com/${{ github.repository }}\";"
             echo "export const SOURCE_COMMIT = \"$SOURCE_COMMIT\";"
-            echo "export const SOURCE_TAG = \"${{ github.ref_name }}\";"
+            echo "export const SOURCE_TAG = \"$RELEASE_TAG\";"
             echo "export const BUILD_RUN = \"$BUILD_RUN\";"
           } > packages/ts-sdk/src/_build_info.ts
 
@@ -154,8 +214,15 @@ jobs:
           npm pack --dry-run
 
       - name: Generate release manifest (source + artifact hashes, not published inside the packages)
+        env:
+          VERSION: ${{ needs.verify-authorization.outputs.version }}
+          REPOSITORY: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
         run: |
           set -euo pipefail
+          # Checked-out tag commit, not github.sha (dispatch runs sit on main).
+          SHA="$(git rev-parse HEAD)"
+          export SHA
           python - <<'PYEOF'
           import hashlib, json, os
           from pathlib import Path
@@ -176,17 +243,12 @@ jobs:
               "source": {
                   "repository": f"https://github.com/{os.environ['REPOSITORY']}",
                   "commit": os.environ["SHA"],
-                  "tag": os.environ["REF_NAME"],
+                  "tag": os.environ["RELEASE_TAG"],
               },
               "artifacts": artifacts,
           }
           Path("release-manifest.json").write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n")
           PYEOF
-        env:
-          VERSION: ${{ needs.verify-authorization.outputs.version }}
-          REPOSITORY: ${{ github.repository }}
-          SHA: ${{ github.sha }}
-          REF_NAME: ${{ github.ref_name }}
 
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
@@ -233,7 +295,9 @@ jobs:
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
         with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && format('refs/tags/{0}', inputs.tag) || github.ref }}
           persist-credentials: false
+          fetch-depth: 0
 
       - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
         with:
@@ -270,7 +334,9 @@ jobs:
 
       - uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228 # v3.0.2
         with:
-          tag_name: ${{ github.ref_name }}
+          # tag push: github.ref_name is the pushed tag; dispatch: it is the
+          # branch the run was dispatched on, so use the requested tag.
+          tag_name: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
           files: |
             release-manifest.json
             packages/python-sdk/dist/*
