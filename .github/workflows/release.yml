@@ -4,9 +4,19 @@
 #
 # Release authority belongs to thyn-ai/algenta: this workflow refuses to
 # build or publish anything unless releases/authorization/sdk-<tag>.json
-# (delivered here via the engine repo's sync mechanism, reviewed and merged
-# by a human like any other sync PR) verifies against the exact tag/commit
-# it's running against. See scripts/verify_release_authorization.py.
+# verifies against the exact tag/commit it's running against. See
+# scripts/verify_release_authorization.py.
+#
+# Lifecycle note: the engine repo signs a release candidate BEFORE the
+# authorization file exists here -- the signer records the pre-PR tip as
+# sdk_commit -- and the file itself is delivered to `main` afterwards via a
+# reviewed PR like any other sync change. A commit can therefore never
+# contain its own authorization, so D0 reads the file from `main` (which
+# holds every merged authorization) rather than from the tagged tree. That
+# changes only WHERE the file is read from, never WHAT is verified: the
+# version must match the tag, sdk_commit must equal the tagged commit, the
+# contract digest must match the tagged tree, and the Ed25519 signature must
+# verify against the embedded engine public key.
 #
 # Publish auth is the same PYPI_TOKEN / NPM_TOKEN every other package in the
 # org already publishes with (repo secrets on this repo). No OIDC/Trusted
@@ -54,14 +64,33 @@ jobs:
 
       - run: python -m pip install --quiet --disable-pip-version-check cryptography
 
+      # The authorization file is merged to `main` AFTER signing (a commit can
+      # never contain its own authorization -- see the lifecycle note in the
+      # header), so it is read from `main` here, not from the tagged tree.
+      # Read-only contents fetch under this workflow's `contents: read`
+      # permission; the checkout above keeps persist-credentials: false. If
+      # the file was never merged to main, this step fails hard and nothing
+      # below it runs.
+      - name: Fetch the release authorization from main
+        env:
+          GH_FETCH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          set -euo pipefail
+          AUTH_FILE="$RUNNER_TEMP/sdk-v${VERSION}.authorization.json"
+          if ! curl -sfL \
+              -H "Authorization: Bearer ${GH_FETCH_TOKEN}" \
+              -H "Accept: application/vnd.github.raw+json" \
+              -o "$AUTH_FILE" \
+              "https://api.github.com/repos/${GITHUB_REPOSITORY}/contents/releases/authorization/sdk-v${VERSION}.json?ref=main"; then
+            echo "::error::No release authorization found at releases/authorization/sdk-v${VERSION}.json on main -- refusing to publish an unauthorized version." >&2
+            exit 1
+          fi
+          echo "AUTH_FILE=${AUTH_FILE}" >> "$GITHUB_ENV"
+
       - name: Verify the release authorization (refuses to continue on any mismatch)
         run: |
           set -euo pipefail
-          AUTH_FILE="releases/authorization/sdk-v${{ steps.version.outputs.version }}.json"
-          if [ ! -f "$AUTH_FILE" ]; then
-            echo "::error::No release authorization found at $AUTH_FILE -- refusing to publish an unauthorized version." >&2
-            exit 1
-          fi
           python scripts/verify_release_authorization.py \
             --authorization-file "$AUTH_FILE" \
             --expected-version "${{ steps.version.outputs.version }}" \
