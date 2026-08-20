@@ -23,7 +23,7 @@ jobs:
     # design (untrusted fork PRs), matching the engine repo's posture.
     runs-on: ${{ fromJSON(vars.RUNNER_LABELS) }}
     steps:
-      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           persist-credentials: false
       # Python from the pre-provisioned runner tool cache: setup-python is unusable on
@@ -45,7 +45,7 @@ jobs:
   ts-sdk:
     runs-on: ${{ fromJSON(vars.RUNNER_LABELS) }}
     steps:
-      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           persist-credentials: false
       - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
@@ -75,7 +75,7 @@ jobs:
     if: github.event_name == 'pull_request'
     runs-on: ${{ fromJSON(vars.RUNNER_LABELS) }}
     steps:
-      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           persist-credentials: false
       - name: Check whether this PR touches a generated contract file
