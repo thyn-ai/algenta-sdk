@@ -13,8 +13,25 @@ on:
     types: [created]
 
 permissions:
-  # Only what's needed to read the PR and post/update a status comment —
-  # nothing broader, and specifically no `contents` access.
+  # The four scopes contributor-assistant/github-action documents as required. Withholding
+  # `contents` was the intent here, but it made the check impossible rather than stricter: with
+  # `permissions:` declared, every omitted scope is `none`, so the action could not even read the
+  # PR's commits — it failed on its first call, `graphql call to get the committers details failed:
+  # Resource not accessible by integration`, before any write was attempted. It then needs write to
+  # create the `cla-signatures` branch and maintain the signature file (that branch did not exist
+  # yet). Net effect of the old block: every human PR failed CLA, while the allowlisted bots passed
+  # by short-circuiting before that call — so the failure looked intermittent.
+  #
+  # What actually keeps this safe is NOT a narrow token, it is that this workflow never executes
+  # contributor-controlled code: no checkout step (see the header), no fork script, and the one
+  # action is pinned to a full commit SHA. The elevated token is therefore only ever held by that
+  # pinned action, never by fork content.
+  #
+  # To drop back to `contents: read`, move signature storage to a separate repository via the
+  # action's `remote-organization-name` / `remote-repository-name` inputs (needs a PAT secret and
+  # that repo to exist). Worth doing, but it is provisioning work, not a permissions edit.
+  actions: write
+  contents: write
   pull-requests: write
   statuses: write
 
