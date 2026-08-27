@@ -53,4 +53,13 @@ jobs:
           # repo's cla-signatures branch holds {"signedContributors": []} -- it passes on the
           # ALLOWLIST, not on any signature -- so this aligns the two repos rather than granting
           # anything new.
-          allowlist: dependabot[bot],github-actions[bot],algenta-sdk-sync[bot],angelatgithub
+          #
+          # eplane11 is the SAME PERSON as angelatgithub: it is the GitHub account behind the
+          # owner's angel@eplane.com git identity, which is what a local git config that has not
+          # been pointed at the noreply address produces. PR #15 showed the effect -- one commit
+          # authored angelatgithub (allowlisted, fine) and one authored eplane11 (not allowlisted),
+          # so cla-check failed on a PR whose only author was the owner. Listing both identities
+          # for one human is the accurate fix; the alternative, rewriting history on every PR that
+          # happens to catch the other identity, fixes nothing and loses authorship. This grants no
+          # third party anything.
+          allowlist: dependabot[bot],github-actions[bot],algenta-sdk-sync[bot],angelatgithub,eplane11
