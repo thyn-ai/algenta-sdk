@@ -146,6 +146,6 @@ Please also read [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md).
 
 ## Community
 
-- [Discord](https://algenta.ai/discord)
+- [Discord](https://discord.gg/w8NDsph9an)
 - [Docs](https://docs.algenta.ai)
 - community@algenta.ai
