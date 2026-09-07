@@ -20,17 +20,60 @@ pip install algenta-sdk       # Python
 npm install algenta-sdk       # TypeScript / JavaScript
 ```
 
+> **Name mapping:** the PyPI package is `algenta-sdk`, but the importable
+> Python module is `decision_engine` — `from decision_engine import
+> AlgentaClient`, **not** `import algenta_sdk`. The npm package name and its
+> import specifier are both `algenta-sdk`. Source for both lives under
+> [`packages/python-sdk`](./packages/python-sdk) and
+> [`packages/ts-sdk`](./packages/ts-sdk) respectively.
+
+## Quickstart
+
+Try it with no account, API key, or network call at all — inspect the
+published API contract locally:
+
 ```python
+from decision_engine import DEFAULT_BASE_URL, PRIMARY_DATA_QUERY_CONTRACT
+
+print(DEFAULT_BASE_URL)
+print(PRIMARY_DATA_QUERY_CONTRACT["api"]["contract_endpoint"])
+```
+
+Once you have an Algenta Engine to talk to — self-hosted in your own
+infrastructure (the default path for paid deployments) or Algenta's Cloud
+Managed API — point the client at it. This example makes a real network
+call and needs a real API key; there is no placeholder value that works:
+
+```python
+import os
+
 from decision_engine import AlgentaClient
 
-client = AlgentaClient(api_key="...", base_url="https://api.algenta.ai")
+api_key = os.environ.get("ALGENTA_API_KEY")
+if not api_key:
+    raise RuntimeError("Set ALGENTA_API_KEY to a real Algenta Engine API key before running this example.")
+
+client = AlgentaClient(
+    api_key=api_key,
+    base_url="http://localhost:8000",     # your self-hosted engine
+    # base_url="https://api.algenta.ai",  # or Algenta's Cloud Managed API
+)
 datasets = client.list_datasets(search="orders", compact=True)
 ```
 
 ```ts
 import { AlgentaClient } from "algenta-sdk";
 
-const client = new AlgentaClient({ apiKey: "...", baseUrl: "https://api.algenta.ai" });
+const apiKey = process.env.ALGENTA_API_KEY;
+if (!apiKey) {
+  throw new Error("Set ALGENTA_API_KEY to a real Algenta Engine API key before running this example.");
+}
+
+const client = new AlgentaClient({
+  apiKey,
+  baseUrl: "http://localhost:8000",     // your self-hosted engine
+  // baseUrl: "https://api.algenta.ai", // or Algenta's Cloud Managed API
+});
 const datasets = await client.listDatasets({ search: "orders", compact: true });
 ```
 
