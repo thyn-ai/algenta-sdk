@@ -8,7 +8,16 @@ Python SDK for Algenta public data, query, and simulation APIs.
 pip install algenta-sdk
 ```
 
-## Root Contract Exports
+> **Name mapping:** the PyPI package is `algenta-sdk`, but the importable
+> module is `decision_engine` — `from decision_engine import AlgentaClient`,
+> **not** `import algenta_sdk`. This source directory is
+> `packages/python-sdk` in the [`algenta-sdk`](https://github.com/thyn-ai/algenta-sdk)
+> repository; all three names refer to the same package.
+
+## Quickstart
+
+No account, API key, or network call required — inspect the published
+contract locally:
 
 ```python
 from decision_engine import DEFAULT_BASE_URL, PRIMARY_DATA_QUERY_CONTRACT
@@ -18,6 +27,30 @@ print(PRIMARY_DATA_QUERY_CONTRACT["api"]["contract_endpoint"])
 print(PRIMARY_DATA_QUERY_CONTRACT["api"]["query_batch_endpoint"])
 print(PRIMARY_DATA_QUERY_CONTRACT["governed_filter_contract"]["operators"]["scalar"])
 ```
+
+## Client Setup
+
+Every section below this point calls a live Algenta Engine and needs a real
+API key — self-hosted in your own infrastructure by default, or Algenta's
+Cloud Managed API:
+
+```python
+import os
+
+from decision_engine import AlgentaClient
+
+api_key = os.environ.get("ALGENTA_API_KEY") or os.environ.get("DE_API_KEY")
+if not api_key:
+    raise RuntimeError("Set ALGENTA_API_KEY or DE_API_KEY before running this example.")
+
+client = AlgentaClient(
+    api_key=api_key,
+    base_url="http://localhost:8000",     # your self-hosted engine
+    # base_url="https://api.algenta.ai",  # or Algenta's Cloud Managed API
+)
+```
+
+The examples below reuse this `client`.
 
 ## Unified Capability Plane
 
@@ -58,19 +91,10 @@ Checked-in request artifacts and runnable examples live in
 
 ## Governed Data + Query Flow
 
+Continuing with the `client` constructed in [Client Setup](#client-setup):
+
 ```python
-import os
-
-from decision_engine import AlgentaClient, QueryFilterCondition, QueryFilterSpec
-
-api_key = os.environ.get("ALGENTA_API_KEY") or os.environ.get("DE_API_KEY")
-if not api_key:
-    raise RuntimeError("Set ALGENTA_API_KEY or DE_API_KEY before running this example.")
-
-client = AlgentaClient(
-    api_key=api_key,
-    base_url="https://api.algenta.ai",
-)
+from decision_engine import QueryFilterCondition, QueryFilterSpec
 
 datasets = client.list_datasets(search="orders", compact=True)
 contract = client.get_contract()
