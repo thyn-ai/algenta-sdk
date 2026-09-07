@@ -113,10 +113,10 @@ issue closed and linked to the release that introduced it.
 - **API capability requests** → GitHub Issues with the `capability-request`
   label (see above)
 - **Questions** → GitHub Issues with the `question` label, or
-  https://algenta.ai/discord
+  https://discord.gg/w8NDsph9an
 
 ## Community
 
-- Discord: https://algenta.ai/discord
+- Discord: https://discord.gg/w8NDsph9an
 - Docs: https://docs.algenta.ai
 - Email: community@algenta.ai
