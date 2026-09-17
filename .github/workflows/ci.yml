@@ -18,10 +18,9 @@ permissions:
 
 jobs:
   python-sdk:
-    # Org-wide self-hosted fleet (org variable RUNNER_LABELS); GitHub-hosted
-    # runners are billing-blocked for this org. This lane is secret-free by
-    # design (untrusted fork PRs), matching the engine repo's posture.
-    runs-on: ${{ fromJSON(vars.RUNNER_LABELS) }}
+    # GitHub-hosted (free for public repositories, serves fork PRs). This lane is
+    # secret-free by design (untrusted fork PRs), matching the engine repo's posture.
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
@@ -39,7 +38,7 @@ jobs:
       - run: ruff check packages/python-sdk || true
 
   ts-sdk:
-    runs-on: ${{ fromJSON(vars.RUNNER_LABELS) }}
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
@@ -47,11 +46,8 @@ jobs:
       - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
         with:
           node-version: "20"
-          # setup-node's cache:npm tars up the runner's ENTIRE global npm cache dir every run.
-          # On a persistent self-hosted runner (not the GitHub-hosted ephemeral VM this feature
-          # assumes) that cache never resets between jobs across every repo the fleet serves, so
-          # it balloons unbounded -- observed at ~4GB for this one small package, real disk
-          # exhaustion on the runner host. Same fix as decision-engine's own ci.yml.
+          # No global npm cache: one small package, a cold `npm ci` is cheaper than the
+          # cache tarball round-trip.
           package-manager-cache: false
       - working-directory: packages/ts-sdk
         run: npm ci --ignore-scripts
@@ -69,7 +65,7 @@ jobs:
   contract-drift-check:
     # PR-only: on a main push there is no base ref to diff against.
     if: github.event_name == 'pull_request'
-    runs-on: ${{ fromJSON(vars.RUNNER_LABELS) }}
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:

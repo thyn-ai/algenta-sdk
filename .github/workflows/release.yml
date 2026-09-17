@@ -59,7 +59,7 @@ permissions:
 jobs:
   verify-authorization:
     name: verify release authorization (D0 -- gates everything below)
-    runs-on: ${{ fromJSON(vars.RUNNER_LABELS) }}
+    runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.version.outputs.version }}
     steps:
@@ -148,7 +148,7 @@ jobs:
   build:
     name: build the exact authorized source
     needs: verify-authorization
-    runs-on: ${{ fromJSON(vars.RUNNER_LABELS) }}
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
@@ -253,7 +253,7 @@ jobs:
   publish-pypi:
     name: publish to PyPI (token)
     needs: [verify-authorization, build]
-    runs-on: ${{ fromJSON(vars.RUNNER_LABELS) }}
+    runs-on: ubuntu-latest
     permissions:
       contents: read
     steps:
@@ -291,7 +291,7 @@ jobs:
   publish-npm:
     name: publish to npm (token)
     needs: [verify-authorization, build]
-    runs-on: ${{ fromJSON(vars.RUNNER_LABELS) }}
+    runs-on: ubuntu-latest
     permissions:
       contents: read
     steps:
@@ -325,7 +325,7 @@ jobs:
   publish-github-release:
     name: attach the release manifest to a GitHub Release
     needs: [verify-authorization, build, publish-pypi, publish-npm]
-    runs-on: ${{ fromJSON(vars.RUNNER_LABELS) }}
+    runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
