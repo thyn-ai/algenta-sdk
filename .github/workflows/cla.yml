@@ -62,4 +62,4 @@ jobs:
           # for one human is the accurate fix; the alternative, rewriting history on every PR that
           # happens to catch the other identity, fixes nothing and loses authorship. This grants no
           # third party anything.
-          allowlist: dependabot[bot],github-actions[bot],algenta-sdk-sync[bot],angelatgithub,eplane11
+          allowlist: dependabot[bot],github-actions[bot],codna-ai[bot],algenta-sdk-sync[bot],angelatgithub,eplane11
