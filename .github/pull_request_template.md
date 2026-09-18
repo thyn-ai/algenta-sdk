@@ -10,5 +10,5 @@
       (`decision_engine/_contract.py`, `src/contract.ts`) — those are
       regenerated internally; see CONTRIBUTING.md
 - [ ] No hardcoded credentials or secrets
-- [ ] I've signed the CLA, or the CLA-assistant bot will prompt me to on
-      this PR
+- [ ] I agree my contribution is licensed under the project's Apache-2.0
+      license (inbound=outbound, GitHub Terms of Service §D.6)
