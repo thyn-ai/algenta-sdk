@@ -156,28 +156,26 @@ export function makeKernelPromotionCriteriaPayload(): Record<string, unknown> {
   };
 }
 
+// Synthetic CSV fixtures committed under packages/ts-sdk/test-fixtures/ (the suite runs
+// with that package as cwd). Regenerate them with scripts/generate_test_fixtures.py —
+// deterministic, obviously-synthetic data; see packages/ts-sdk/test-fixtures/README.md.
+// The suite asserts exact row counts, so never hand-edit the CSVs.
 export const REAL_MARCH_ORDERS = resolvePath(
   process.cwd(),
-  "..",
-  "..",
-  "test_files",
-  "850a28da-a6f7-4ecc-9e7a-51a9cf7f501b-united_states.csv",
+  "test-fixtures",
+  "synthetic_orders_march_2026.csv",
 );
 
 export const REAL_MARCH_FINANCIAL = resolvePath(
   process.cwd(),
-  "..",
-  "..",
-  "test_files",
-  "aaeff3ab-19ac-494e-9e58-e507bd7e3893-united_states.csv",
+  "test-fixtures",
+  "synthetic_financial_march_2026.csv",
 );
 
 export const REAL_MARCH_EMPTY = resolvePath(
   process.cwd(),
-  "..",
-  "..",
-  "test_files",
-  "549c63c8-3300-416c-8b45-55fec4c6529a_store_pause_2026-03-01_2026-03-31.csv",
+  "test-fixtures",
+  "synthetic_store_pause_empty.csv",
 );
 
 export const ORIGINAL_ENV = { ...process.env };
