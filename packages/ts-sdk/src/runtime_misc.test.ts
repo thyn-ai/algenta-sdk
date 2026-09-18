@@ -737,7 +737,7 @@ describe("Runtime — misc", () => {
         expires_at: 0,
         key_expires_at: 0,
         grace_days: 14,
-        iss: "algenta-dev-local",
+        iss: "forged-synthetic-issuer",
         sub: "device-license",
       });
       const signature = createHmac("sha256", forgedSecret).update(`${header}.${payload}`).digest("base64url");
