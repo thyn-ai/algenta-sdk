@@ -717,16 +717,16 @@ export function base64UrlJson(value: Record<string, unknown>): string {
 }
 
 /**
- * Simulate a real control-plane `/v1/device/register` response: an RS256-signed license, using
+ * Simulate a control-plane `/v1/device/register` response: an RS256-signed license, using
  * a fresh ephemeral RSA keypair per call (mirrors {@link issueOfflineLocalLicense}'s approach).
  *
- * This used to mint HS256 tokens (reimplementing the exact `sha256(jwtSeed + ":license-signing")`
- * derivation the control plane's `dev_hmac` signer used) to simulate the old default behavior.
- * That symmetric scheme has been retired everywhere — `parseStoredLicenseToken` now hard-rejects
- * any `alg !== "RS256"` unconditionally — so this helper mints RS256 like the real hardened
- * control plane (`pem`/`cf_worker` backends) does. Callers must register the returned public key
- * (e.g. via `process.env.ALGENTA_LOCAL_LICENSE_PUBLIC_KEY`) before the SDK will accept the token;
- * {@link seedStoredLicense} does this for the common "write license.jwt to disk" case.
+ * Legacy license tokens used a retired symmetric scheme; verification of that scheme lives in
+ * the private engine repo and is intentionally not reproduced here. The scheme has been retired
+ * everywhere — `parseStoredLicenseToken` now hard-rejects any `alg !== "RS256"` unconditionally —
+ * so this helper mints RS256 like the hardened control plane does. Callers must register the
+ * returned public key (e.g. via `process.env.ALGENTA_LOCAL_LICENSE_PUBLIC_KEY`) before the SDK
+ * will accept the token; {@link seedStoredLicense} does this for the common "write license.jwt
+ * to disk" case.
  */
 export function issueControlPlaneLicense(
   apiKey: string,
