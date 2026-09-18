@@ -1,0 +1,87 @@
+name: mojo-quickstart
+
+# Verifies that examples/mojo-quickstart compiles and runs against the signed
+# algenta-runtime-native wheel published on PyPI. The demo only exists where
+# a runtime wheel exists, so each matrix leg first DETECTS wheel availability
+# and then either runs `pixi run demo` or reports an explicit, visible SKIP —
+# never a silent green and never continue-on-error.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "examples/mojo-quickstart/**"
+      - ".github/workflows/mojo-quickstart.yml"
+  pull_request:
+    paths:
+      - "examples/mojo-quickstart/**"
+      - ".github/workflows/mojo-quickstart.yml"
+  workflow_dispatch:
+  schedule:
+    # Weekly, so upstream toolchain or wheel releases that break the
+    # quickstart surface even when nothing in this repo changed.
+    - cron: "13 7 * * 1"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mojo-quickstart-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  demo:
+    name: ${{ matrix.label }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Platforms with a published algenta-runtime-native wheel: the demo
+          # must run and pass on these.
+          - os: macos-latest
+            label: macOS (Apple Silicon)
+          - os: ubuntu-latest
+            label: Linux (x86_64, glibc)
+          # No Windows wheel exists; this leg exercises the detection +
+          # explicit-skip path on every run so it cannot silently rot.
+          - os: windows-latest
+            label: Windows (expect explicit SKIP)
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Detect a compatible runtime wheel
+        id: wheel
+        shell: bash
+        run: |
+          # `python3` is not guaranteed on Windows git-bash; pick what exists.
+          if command -v python3 >/dev/null 2>&1; then PY=python3; else PY=python; fi
+          "$PY" examples/mojo-quickstart/detect_runtime_wheel.py
+
+      - name: Note the skip
+        if: steps.wheel.outputs.supported == 'false'
+        shell: bash
+        run: |
+          echo "::notice::algenta-runtime-native publishes no wheel for \
+          ${{ runner.os }}/${{ runner.arch }}; the Mojo quickstart demo is \
+          intentionally skipped on this platform."
+          echo "### Mojo quickstart: SKIPPED" >> "$GITHUB_STEP_SUMMARY"
+          echo "No \`algenta-runtime-native\` wheel for ${{ runner.os }}/${{ runner.arch }} — \
+          the demo cannot run here. See the detection step for details." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Set up pixi
+        if: steps.wheel.outputs.supported == 'true'
+        uses: prefix-dev/setup-pixi@d3f436a425481402e6a95a1d1fc10331c708cd9e # v0.10.2
+        with:
+          manifest-path: examples/mojo-quickstart/pixi.toml
+          cache: true
+          # locked defaults to true because pixi.lock is committed: CI fails
+          # loudly if the manifest and lockfile ever drift apart.
+
+      - name: Run the Mojo quickstart demo
+        if: steps.wheel.outputs.supported == 'true'
+        working-directory: examples/mojo-quickstart
+        shell: bash
+        run: pixi run --locked demo
