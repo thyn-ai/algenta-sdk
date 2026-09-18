@@ -203,6 +203,12 @@ jobs:
           npm run build
           npm pack --dry-run
 
+      - name: Verify the built artifacts install like a real user's (fresh venv / fresh npm project)
+        run: |
+          set -euo pipefail
+          python scripts/verify_python_artifact_install.py
+          node scripts/verify_ts_sdk_artifact_install.mjs
+
       - name: Generate release manifest (source + artifact hashes, not published inside the packages)
         env:
           VERSION: ${{ needs.verify-authorization.outputs.version }}
