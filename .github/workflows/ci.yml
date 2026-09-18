@@ -3,9 +3,8 @@
 # must be safe to run against fully adversarial, contributor-controlled code.
 #
 # There is deliberately no publish/release job in this repository at all —
-# see the engine repo's (private, thyn-ai/algenta) release-sdks.yml, which is
-# the sole place PyPI/npm publishing happens, built from a signed sdk-v* tag
-# in this repo.
+# PyPI/npm publishing happens in the Algenta engine's internal release
+# pipeline (closed source), built from a signed sdk-v* tag in this repo.
 name: ci
 
 on:
@@ -18,24 +17,32 @@ permissions:
 
 jobs:
   python-sdk:
-    # GitHub-hosted (free for public repositories, serves fork PRs). This lane is
-    # secret-free by design (untrusted fork PRs), matching the engine repo's posture.
+    # GitHub-hosted (free for public repositories, serves fork PRs). This lane
+    # is secret-free by design so it can run untrusted fork code.
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      # Discovered, never hardcoded -- the old tool-cache path pinned a version, an arch and a
-      # layout, and all three broke when the fleet moved off macOS. See the action for detail.
-      - name: Fleet Python (discovered, into a venv)
-        uses: ./.github/actions/fleet-python
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.13"
       - run: python -m pip install --upgrade pip && pip install -e "packages/python-sdk[dev]"
-      - run: pytest packages/python-sdk -v
-      # Soft-fail, matching the engine repo's posture (it ruffs only apps/, with `|| true`, and
-      # never lints this package). This is the first time any lane ever linted it -- 707 legacy
-      # findings (F401/F821-via-star-imports/E402 facade style; the E9,F63,F7 fatal set is clean).
-      # TODO: pay the debt down, then drop the `|| true` to make this a hard gate.
-      - run: ruff check packages/python-sdk || true
+      # The coverage floor is 15%, two points under the 17% measured when this
+      # gate was introduced. Raise it as coverage improves; never lower it.
+      - run: pytest packages/python-sdk -v --cov=decision_engine --cov-report=xml --cov-fail-under=15
+      - run: ruff check packages/python-sdk
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
+        with:
+          files: ./coverage.xml
+          flags: python-sdk
+          # Tokenless upload: CODECOV_TOKEN is not required for public
+          # repositories, and this lane must stay secret-free to serve
+          # untrusted fork PRs. fail_ci_if_error stays off: the enforced gate
+          # is --cov-fail-under above, and a Codecov outage must not block
+          # contributions.
+          fail_ci_if_error: false
 
   ts-sdk:
     runs-on: ubuntu-latest
@@ -53,15 +60,43 @@ jobs:
         run: npm ci --ignore-scripts
       - working-directory: packages/ts-sdk
         run: npm run lint
+      # tsc build + vitest with v8 coverage; floors are enforced via
+      # packages/ts-sdk/vitest.config.ts.
       - working-directory: packages/ts-sdk
-        run: npm test
+        run: npm run test:coverage
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
+        with:
+          files: ./packages/ts-sdk/coverage/lcov.info
+          flags: ts-sdk
+          # Tokenless upload, same rationale as the python-sdk lane above.
+          fail_ci_if_error: false
+
+  # examples/shared/*.test.ts use node:test (not vitest) and import the
+  # TypeScript SDK sources directly, so they run through tsx, which resolves
+  # the .ts specifiers. The examples tree has no package.json of its own, so
+  # tsx is installed ad hoc, pinned to an exact version.
+  examples-shared:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "24"
+      - name: Install tsx (pinned)
+        run: npm install --no-save --ignore-scripts --prefix "$RUNNER_TEMP/tsx-runner" tsx@4.23.13
+      - name: Run shared example tests
+        run: '"$RUNNER_TEMP/tsx-runner/node_modules/.bin/tsx" --test examples/shared/*.test.ts'
 
   # Blocks a PR that hand-edits either generated contract snapshot, UNLESS
-  # the PR was opened by the internal sync App from the engine repo. Gated
-  # on the authenticated actor GitHub records for the PR (github.event.
-  # pull_request.user.login for an App-authored PR is an unforgeable
-  # "<slug>[bot]" login set by GitHub itself) — never on a commit author
-  # string, which any contributor can set to anything.
+  # the PR was opened by the internal sync App that mirrors contract updates
+  # from the Algenta engine (closed source). Gated on the authenticated actor
+  # GitHub records for the PR (github.event.pull_request.user.login for an
+  # App-authored PR is an unforgeable "<slug>[bot]" login set by GitHub
+  # itself) — never on a commit author string, which any contributor can set
+  # to anything.
   contract-drift-check:
     # PR-only: on a main push there is no base ref to diff against.
     if: github.event_name == 'pull_request'
@@ -75,9 +110,9 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         # REST compare instead of `git fetch` + `git diff`: the checkout above is
-        # persist-credentials:false on purpose (untrusted fork PRs), so the runner holds no git
-        # credentials for this private repo and a fetch exits 128. The API call authenticates
-        # as the job token instead, without leaving anything in .git/config.
+        # persist-credentials:false on purpose (untrusted fork PRs), so the runner holds
+        # no git credentials and a fetch would fail. The API call authenticates as the
+        # job token instead, without leaving anything in .git/config.
         run: |
           if gh api "repos/${{ github.repository }}/compare/${{ github.event.pull_request.base.ref }}...${{ github.event.pull_request.head.sha }}" \
                --paginate --jq '.files[].filename' \
@@ -90,8 +125,7 @@ jobs:
         if: steps.touched.outputs.touched == 'true'
         env:
           PR_AUTHOR: ${{ github.event.pull_request.user.login }}
-          # TODO: set to the real sync App's bot login once it's registered,
-          # e.g. "algenta-sdk-sync[bot]".
+          # The sync App's GitHub-recorded bot login.
           EXPECTED_AUTHOR: "algenta-sdk-sync[bot]"
         run: |
           if [ "$PR_AUTHOR" != "$EXPECTED_AUTHOR" ]; then

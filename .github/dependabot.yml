@@ -1,11 +1,9 @@
 version: 2
 updates:
   # Only the workflow pins live natively in this repository. packages/python-sdk,
-  # packages/ts-sdk and examples/ are mirrored from the engine by sync-public-sdk,
-  # so dependency bumps must land there (a Dependabot PR here would be overwritten
-  # by the next sync). Dependency vulnerabilities are reported by osv-scanner in
-  # .github/workflows/security.yml (advisory today; it becomes a gate once a
-  # CI-measured security/baseline exists and the caller switches to mode: ratchet).
+  # packages/ts-sdk and examples/ are mirrored from the Algenta engine (closed
+  # source) by the internal sync pipeline, so dependency bumps must land there --
+  # a Dependabot PR here would be overwritten by the next sync.
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
@@ -14,10 +12,5 @@ updates:
       codeql-action:
         patterns:
           - "github/codeql-action/*"
-    ignore:
-      # Pinned by thyn-ai/security-toolchain's propagate.py together with the
-      # pre-commit rev, so hooks and CI never drift apart. Dependabot names a
-      # reusable workflow by its full path, hence the wildcard.
-      - dependency-name: "thyn-ai/security-toolchain*"
     commit-message:
       prefix: "chore(ci)"
