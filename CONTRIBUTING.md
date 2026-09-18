@@ -79,21 +79,16 @@ docs(ts-sdk): document Runtime local mode
 - [ ] Documentation updated if needed
 - [ ] No hardcoded credentials or secrets
 - [ ] Generated contract files (see above) are untouched
-- [ ] CLA signed (the CLA-assistant bot will comment on your first PR with
-      instructions)
 
 All CI checks must pass, including on forked-repository pull requests — CI
 runs with no secrets and no elevated permissions, so it's safe to run
 automatically on every PR.
 
-## Contributor License Agreement
+## Licensing
 
-By submitting a pull request, you'll be asked to sign Algenta's Contributor
-License Agreement (a perpetual, worldwide, irrevocable grant letting
-Algenta, Inc. use your contribution across both this open-source repository
-and Algenta's closed-source products). The CLA-assistant bot handles this
-automatically on your first PR — you only need to sign once. See
-[`CLA.md`](./CLA.md) for the full text.
+By submitting a pull request you agree that your contribution is licensed
+under the project's [Apache-2.0 license](./LICENSE) (inbound=outbound,
+[GitHub Terms of Service §D.6](https://docs.github.com/en/site-policy/github-terms/github-terms-of-service#6-contributions-under-repository-license)).
 
 ## API capability requests
 
