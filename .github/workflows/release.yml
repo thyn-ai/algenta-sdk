@@ -1,13 +1,13 @@
 # Publishes algenta-sdk to PyPI and npm. This is the ONLY workflow, in either
-# thyn-ai/algenta (the private engine repo) or this repo, that ever runs
+# the Algenta engine repository (closed source) or this repo, that ever runs
 # `twine upload` / `npm publish` for real.
 #
-# Release authority belongs to thyn-ai/algenta: this workflow refuses to
-# build or publish anything unless releases/authorization/sdk-<tag>.json
-# verifies against the exact tag/commit it's running against. See
-# scripts/verify_release_authorization.py.
+# Release authority belongs to the Algenta engine (closed source): this
+# workflow refuses to build or publish anything unless
+# releases/authorization/sdk-<tag>.json verifies against the exact tag/commit
+# it's running against. See scripts/verify_release_authorization.py.
 #
-# Lifecycle note: the engine repo signs a release candidate BEFORE the
+# Lifecycle note: the engine signs a release candidate BEFORE the
 # authorization file exists here -- the signer records the pre-PR tip as
 # sdk_commit -- and the file itself is delivered to `main` afterwards via a
 # reviewed PR like any other sync change. A commit can therefore never
@@ -106,10 +106,9 @@ jobs:
           VERSION="${RELEASE_TAG#sdk-v}"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
-      # Discovered, never hardcoded -- the old tool-cache path pinned a version, an arch and a
-      # layout, and all three broke when the fleet moved off macOS. See the action for detail.
-      - name: Fleet Python (discovered, into a venv)
-        uses: ./.github/actions/fleet-python
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.13"
 
       - run: python -m pip install --quiet --disable-pip-version-check cryptography
 
@@ -156,10 +155,9 @@ jobs:
           persist-credentials: false
           fetch-depth: 0
 
-      # Discovered, never hardcoded -- the old tool-cache path pinned a version, an arch and a
-      # layout, and all three broke when the fleet moved off macOS. See the action for detail.
-      - name: Fleet Python (discovered, into a venv)
-        uses: ./.github/actions/fleet-python
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.13"
 
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
@@ -257,27 +255,17 @@ jobs:
     permissions:
       contents: read
     steps:
-      # Only the composite action, never the source tree. This job holds PYPI_TOKEN and is
-      # deliberately minimal -- it publishes artifacts built elsewhere and has no reason to
-      # have the repository on disk. A local `uses: ./...` action does need its own directory
-      # present, so take that one path and nothing else.
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-          sparse-checkout: .github/actions/fleet-python
-          sparse-checkout-cone-mode: false
-
+      # No checkout at all: this job holds PYPI_TOKEN and is deliberately
+      # minimal -- it publishes artifacts built by the `build` job and has no
+      # reason to have the repository on disk.
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: release-artifacts
           path: .
 
-      # Discovered, never hardcoded -- the old tool-cache path pinned a version, an arch and a
-      # layout, and all three broke when the fleet moved off macOS. See the action for detail.
-      # This job needs it as much as any: `pip install twine` below hits the same root-owned
-      # site-packages otherwise.
-      - name: Fleet Python (discovered, into a venv)
-        uses: ./.github/actions/fleet-python
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.13"
 
       - name: Publish
         env:
