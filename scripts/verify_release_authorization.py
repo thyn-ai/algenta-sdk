@@ -12,9 +12,8 @@ publish unless ALL of:
   4. The authorization's Ed25519 signature verifies against the embedded Algenta
      public key.
 
-See the approved SDK-repo extraction plan's Step 4 amendment, and
-scripts/sign_sdk_release_authorization.py in the engine repo (thyn-ai/algenta),
-which is the only thing that ever produces one of these.
+Authorizations are produced exclusively by the signing tool in Algenta's
+private engine repository; this script only ever verifies them.
 """
 
 from __future__ import annotations
