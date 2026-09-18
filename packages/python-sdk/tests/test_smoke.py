@@ -1,15 +1,16 @@
 """Standalone smoke tests for the public algenta-sdk package.
 
 These are intentionally minimal: they prove the package imports and works
-correctly on its own, outside the private engine repo's monorepo test
-infrastructure (which pulls in a shared conftest.py, a full FastAPI app
-stack, and a database — none of which a `pip install algenta-sdk` user has,
-and none of which belong in this public repo).
+correctly on its own, outside any private engine infrastructure (no shared
+conftest, no FastAPI app stack, no database — none of which a
+`pip install algenta-sdk` user has, and none of which belong in this public
+repo).
 
-This is not a port of the private repo's full test coverage for this
-package — that coverage currently lives commingled with the engine's own
-test suite and isn't yet separable into something that runs standalone. If
-you're picking up that follow-up, this file is the place to grow it.
+The broader standalone suite lives alongside this file: `conftest.py` holds
+the shared fixtures, and the `test_*.py` modules cover client construction,
+the facade surfaces, the error taxonomy, retry/back-off behavior, privacy
+profiles, device binding, and contract discovery. Keep everything here
+network-free (respx mocks only) and deterministic.
 """
 
 from __future__ import annotations
