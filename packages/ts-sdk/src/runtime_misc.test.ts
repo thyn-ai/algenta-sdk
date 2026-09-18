@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 // Tests for Runtime: misc.
 // Extracted from runtime.test.ts during modularization.
 import { createHash, createHmac, createSign, generateKeyPairSync } from "node:crypto";
@@ -687,9 +688,8 @@ describe("Runtime — misc", () => {
     });
 
     it("hard-rejects a token signed with the retired HS256 control-plane derivation (regression for the HS256 fix)", () => {
-      // Recreates EXACTLY the old, now-deleted licenseVerificationSecrets() derivation
-      // (sha256Hex(jwtSeed + ":license-signing")) that the TS SDK and the control plane's
-      // dev_hmac signer both used. Proves it is rejected outright even with the "correct"
+      // Recreates the retired HS256 license derivation below exactly as it was once
+      // computed. Proves it is rejected outright even with the "correct"
       // original secret: alg !== "RS256" is now an unconditional hard reject in
       // parseStoredLicenseToken, never a fallback-eligible condition gated on
       // requireLocalLicense() or any other deployment profile.
