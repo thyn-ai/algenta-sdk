@@ -20,7 +20,13 @@ npm-debug.log*
 .idea/
 .DS_Store
 
-# Generated at release build time — never committed, see release-sdks.yml
-# in the engine repo and this repo's own CONTRIBUTING.md.
+# Generated at release build time — never committed, see CONTRIBUTING.md.
 **/_build_info.py
 **/_build_info.ts
+
+# Secrets — never commit key material of any kind
+*.pem
+*.key
+
+# Internal working documents — not part of the open-source project
+deep-research-report*
