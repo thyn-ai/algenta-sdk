@@ -1,5 +1,6 @@
-# Authoritative security gate -- re-runs the pre-push policy on a clean checkout.
-# Managed by thyn-ai/security-toolchain (propagate bumps the pin). Change `overlay`/`mode` here.
+# Security scanning with public tooling. Runs on every PR, including ones
+# from forks: no secrets are referenced anywhere in this file, so it is safe
+# to run against fully adversarial, contributor-controlled code.
 name: security
 
 on:
@@ -9,11 +10,6 @@ on:
   schedule:
     - cron: "23 5 * * 1"
   workflow_dispatch:
-    inputs:
-      measure_baseline:
-        description: "Measure security/baseline/*.txt on CI and upload as an artifact"
-        type: boolean
-        default: false
 
 permissions:
   contents: read
@@ -23,14 +19,62 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
-  full:
-    uses: thyn-ai/security-toolchain/.github/workflows/security-full.yml@5384dbda80abae6e2041d09a0916b740729d75e4 # v0.1.8
-    permissions:
-      contents: read
-      security-events: write
-      pull-requests: read
-      actions: read # SARIF upload needs it while this repository is private
-    with:
-      overlay: pnpm-monorepo
-      mode: advisory
-      measure_baseline: ${{ github.event_name == 'workflow_dispatch' && inputs.measure_baseline == true }}
+  # Hard gate. Scans full git history for committed secrets. The official
+  # gitleaks-action is deliberately NOT used: it requires a GITLEAKS_LICENSE
+  # secret for organization-owned repositories, and secrets are never
+  # available to fork pull requests -- so this job runs the gitleaks CLI
+  # directly, pinned by version and verified against the sha256 published in
+  # the release's own checksums file.
+  gitleaks:
+    name: gitleaks (secret scan)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Install gitleaks (pinned, checksum-verified)
+        env:
+          GITLEAKS_VERSION: "8.30.1"
+          # sha256 of gitleaks_8.30.1_linux_x64.tar.gz, from the release's
+          # official gitleaks_8.30.1_checksums.txt.
+          GITLEAKS_SHA256: "551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb"
+        run: |
+          set -euo pipefail
+          curl -sfL -o "$RUNNER_TEMP/gitleaks.tar.gz" \
+            "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          echo "${GITLEAKS_SHA256}  $RUNNER_TEMP/gitleaks.tar.gz" | sha256sum --check
+          tar -xzf "$RUNNER_TEMP/gitleaks.tar.gz" -C "$RUNNER_TEMP" gitleaks
+          echo "GITLEAKS_BIN=$RUNNER_TEMP/gitleaks" >> "$GITHUB_ENV"
+      - name: Scan git history for secrets
+        run: '"$GITLEAKS_BIN" git --redact --verbose .'
+
+  # Advisory SAST. Findings are reported in the job log but do not fail the
+  # build: the scan uses the registry's live `p/default` ruleset, which
+  # evolves over time, so a hard gate here could break unrelated PRs without
+  # any code change on our side. Promoting this to a gate requires a
+  # vendored, pinned ruleset first.
+  opengrep:
+    name: opengrep (SAST, advisory)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install opengrep (pinned, checksum-verified)
+        env:
+          OPENGREP_VERSION: "1.30.0"
+          # sha256 of the opengrep_manylinux_x86 release asset, recorded at
+          # pin time. Opengrep does not publish a checksums file; sigstore
+          # signatures ship alongside the release assets for out-of-band
+          # verification.
+          OPENGREP_SHA256: "35779bdd72e92129c8df2a77f0c55e8c08356801ea92591ef32108d6b28d564c"
+        run: |
+          set -euo pipefail
+          curl -sfL -o "$RUNNER_TEMP/opengrep" \
+            "https://github.com/opengrep/opengrep/releases/download/v${OPENGREP_VERSION}/opengrep_manylinux_x86"
+          echo "${OPENGREP_SHA256}  $RUNNER_TEMP/opengrep" | sha256sum --check
+          chmod +x "$RUNNER_TEMP/opengrep"
+          echo "OPENGREP_BIN=$RUNNER_TEMP/opengrep" >> "$GITHUB_ENV"
+      - name: Scan (advisory)
+        run: '"$OPENGREP_BIN" scan --config p/default --disable-version-check .'
