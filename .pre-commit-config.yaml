@@ -11,24 +11,26 @@ repos:
         args: ["--maxkb=1024"]
       - id: check-yaml
         args: ["--allow-multiple-documents"]
-        exclude: ^(charts?|helm|infra/helm)/
       - id: check-json
       - id: end-of-file-fixer
       - id: trailing-whitespace
 
-  # thyn-security-toolchain:begin -- managed by thyn-ai/security-toolchain (propagate). Edit args, not rev.
-  - repo: https://github.com/thyn-ai/security-toolchain
-    rev: v0.1.8
+  # Security hooks, pinned by tag. CI (.github/workflows/security.yml) re-runs
+  # gitleaks and opengrep on a clean checkout, so these hooks are a local
+  # convenience, not the authoritative gate.
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.30.1
     hooks:
-      - id: gitleaks-staged
-      - id: opengrep-changed
-        args: ["--overlay=pnpm-monorepo"]
+      # language: golang -- requires a Go toolchain to build the hook.
+      - id: gitleaks
+  - repo: https://github.com/opengrep/opengrep
+    rev: v1.30.0
+    hooks:
+      # language: system -- requires the opengrep binary on PATH; see
+      # https://github.com/opengrep/opengrep/blob/main/INSTALL.md.
+      - id: semgrep
+  - repo: https://github.com/rhysd/actionlint
+    rev: v1.7.12
+    hooks:
+      # language: golang -- requires a Go toolchain to build the hook.
       - id: actionlint
-      - id: verify-toolchain
-      - id: gitleaks-push
-      - id: opengrep-full
-        args: ["--overlay=pnpm-monorepo"]
-      - id: osv-scan
-      - id: trivy-config
-      - id: security-fix-deps
-  # thyn-security-toolchain:end

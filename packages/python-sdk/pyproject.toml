@@ -30,7 +30,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest", "pytest-asyncio", "respx", "black", "ruff"]
+dev = ["pytest", "pytest-asyncio", "pytest-cov", "respx", "black", "ruff"]
 
 [project.urls]
 Homepage = "https://algenta.ai"
