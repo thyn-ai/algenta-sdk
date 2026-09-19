@@ -303,7 +303,7 @@ jobs:
             (cd packages/python-sdk/dist && sha256sum -- *)
             sha256sum release-manifest.json
           } | tee "$RUNNER_TEMP/subjects.sha256sum"
-          echo "hashes=$(base64 -w0 < "$RUNNER_TEMP/subjects.sha256sum")" >> "$GITHUB_OUTPUT"
+          echo "hashes=$(base64 -w0 "$RUNNER_TEMP/subjects.sha256sum")" >> "$GITHUB_OUTPUT"
 
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
