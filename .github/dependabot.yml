@@ -1,10 +1,11 @@
 version: 2
 updates:
-  # Only the workflow pins and the release-tooling locks under
-  # .github/requirements/ live natively in this repository. packages/python-sdk,
-  # packages/ts-sdk and examples/ are mirrored from the Algenta engine (closed
-  # source) by the internal sync pipeline, so dependency bumps must land there --
-  # a Dependabot PR here would be overwritten by the next sync.
+  # packages/python-sdk, packages/ts-sdk and examples/ are mirrored from the
+  # Algenta engine (closed source) by the internal sync pipeline, so dependency
+  # bumps for the SDKs themselves must land there -- a Dependabot PR here would
+  # be overwritten by the next sync. What lives natively in this repository, and
+  # is therefore refreshed from here, is the workflow action pins plus the two
+  # hash-pinned CI tooling manifests under .github/ (the pip and npm entries).
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
@@ -16,15 +17,29 @@ updates:
     commit-message:
       prefix: "chore(ci)"
 
-  # Hash-locked tooling that release.yml installs with --require-hashes
-  # (.github/requirements/*.in -> *.txt). One grouped PR refreshes the pins
-  # and their --hash lines together.
+  # .github/requirements/*.{in,txt}: the hash-pinned toolchains CI installs with
+  # --require-hashes -- python-sdk-ci (pytest / hypothesis / ruff for the python-sdk
+  # lane) and release-* (cryptography, build, twine for release.yml). One weekly
+  # grouped PR refreshes every pin and its hashes together.
   - package-ecosystem: "pip"
     directory: "/.github/requirements"
     schedule:
       interval: "weekly"
     groups:
-      release-tooling:
+      python-sdk-ci-tooling:
+        patterns:
+          - "*"
+    commit-message:
+      prefix: "chore(ci)"
+
+  # .github/tsx-runner/package-lock.json: the pinned tsx tree the
+  # examples-shared CI lane runs through.
+  - package-ecosystem: "npm"
+    directory: "/.github/tsx-runner"
+    schedule:
+      interval: "weekly"
+    groups:
+      tsx-runner:
         patterns:
           - "*"
     commit-message:
