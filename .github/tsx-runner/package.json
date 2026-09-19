@@ -1,0 +1,9 @@
+{
+  "name": "algenta-sdk-examples-tsx-runner",
+  "private": true,
+  "description": "CI-only: pins tsx and its whole dependency tree (via package-lock.json) for the examples-shared job in .github/workflows/ci.yml, so that job can use `npm ci` instead of an unpinned `npm install`. Lives here because examples/ is mirrored from thyn-ai/algenta and has no package.json of its own.",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "tsx": "4.23.13"
+  }
+}
