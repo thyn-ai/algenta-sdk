@@ -191,7 +191,9 @@ class TestApiKeys:
     ) -> None:
         """A list endpoint must never return the one-time secret; the SDK fails closed."""
         mock_router.get(f"{TEST_BASE_URL}/v1/api-keys").mock(
-            return_value=Response(200, json=[{**_API_KEY, secret_field: "de_live_ab12_secret"}])
+            return_value=Response(
+                200, json=[{**_API_KEY, secret_field: "de_live_ab12_example_secret"}]
+            )
         )
 
         with pytest.raises(ValueError, match="leaked one-time secret material"):
@@ -303,7 +305,7 @@ class TestApiKeys:
         self, client: AlgentaClient, mock_router
     ) -> None:
         mock_router.post(f"{TEST_BASE_URL}/v1/api-keys").mock(
-            return_value=Response(200, json=["de_live_ab12_secret"])
+            return_value=Response(200, json=["de_live_ab12_example_secret"])
         )
 
         with pytest.raises(TypeError, match="API key create response must be a JSON object"):
@@ -439,7 +441,7 @@ class TestAsyncParity:
             return_value=Response(200, json={"api_keys": [_API_KEY]})
         )
         create = mock_router.post(f"{TEST_BASE_URL}/v1/api-keys").mock(
-            return_value=Response(200, json={**_API_KEY, "raw_key": "de_live_ab12_secret"})
+            return_value=Response(200, json={**_API_KEY, "raw_key": "de_live_ab12_example_secret"})
         )
         mock_router.delete(f"{TEST_BASE_URL}/v1/api-keys/key_1").mock(
             return_value=Response(200, json={"revoked": True})
@@ -458,7 +460,7 @@ class TestAsyncParity:
             "expires_at": "2027-01-01T00:00:00+00:00",
             "device_limit": 1,
         }
-        assert created["raw_key"] == "de_live_ab12_secret"
+        assert created["raw_key"] == "de_live_ab12_example_secret"
         assert revoked == {"revoked": True}
 
     @pytest.mark.asyncio
