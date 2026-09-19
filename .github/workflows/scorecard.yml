@@ -1,0 +1,48 @@
+# OpenSSF Scorecard: weekly supply-chain security posture check, published to
+# the OpenSSF API (which backs the README badge) and uploaded to code scanning.
+#
+# Hardening (approved-steps-only): every step is one of the three actions
+# approved for this workflow -- actions/checkout, ossf/scorecard-action and
+# github/codeql-action/upload-sarif -- each pinned to a full-length commit
+# SHA. No secrets are referenced, checkout does not persist credentials, and
+# permissions are least-privilege: the top level is read-only; only the
+# analysis job receives the two writes it needs (security-events for the
+# SARIF upload, id-token for the sigstore OIDC signature that
+# publish_results requires).
+name: Scorecard
+
+"on":
+  schedule:
+    - cron: "47 5 * * 3"
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  analysis:
+    name: OpenSSF Scorecard
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Run Scorecard analysis
+        uses: ossf/scorecard-action@2d1146689b8cda280b9bc96326124645441f03bc # v2.4.4
+        with:
+          results_file: results.sarif
+          results_format: sarif
+          publish_results: true
+
+      - name: Upload SARIF to code scanning
+        uses: github/codeql-action/upload-sarif@b96794f015dfd88f77b49b1c93e0fa7110f94c63 # v4.38.0
+        with:
+          sarif_file: results.sarif
