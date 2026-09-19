@@ -12,6 +12,8 @@
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](./LICENSE)
 [![All Contributors](https://img.shields.io/badge/all_contributors-0-orange.svg)](#contributors)
 
+📖 **Full documentation: [GitHub Wiki](https://github.com/thyn-ai/algenta-sdk/wiki)**
+
 [Docs](https://docs.algenta.ai) · [Python SDK](./packages/python-sdk) · [TypeScript SDK](./packages/ts-sdk) · [Integrations](https://github.com/thyn-ai/algenta-integrations) · [Examples](./examples) · [Contributing](./CONTRIBUTING.md)
 
 </div>
