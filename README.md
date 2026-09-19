@@ -8,6 +8,7 @@
 [![PyPI](https://img.shields.io/pypi/v/algenta-sdk?label=PyPI)](https://pypi.org/project/algenta-sdk/)
 [![npm](https://img.shields.io/npm/v/algenta-sdk?label=npm)](https://www.npmjs.com/package/algenta-sdk)
 [![codecov](https://codecov.io/gh/thyn-ai/algenta-sdk/branch/main/graph/badge.svg)](https://codecov.io/gh/thyn-ai/algenta-sdk)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/thyn-ai/algenta-sdk/badge)](https://scorecard.dev/viewer/?uri=github.com/thyn-ai/algenta-sdk)
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](./LICENSE)
 
 [Docs](https://docs.algenta.ai) · [Python SDK](./packages/python-sdk) · [TypeScript SDK](./packages/ts-sdk) · [Integrations](https://github.com/thyn-ai/algenta-integrations) · [Examples](./examples) · [Contributing](./CONTRIBUTING.md)
