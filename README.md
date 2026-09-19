@@ -144,6 +144,8 @@ they are generated from, the client/runtime wire protocol they speak, and
 runnable examples — including [`examples/mojo-quickstart/`](./examples/mojo-quickstart),
 a minimal end-to-end walkthrough of calling the native runtime through the SDK.
 
+![Mojo FFI quickstart: pixi run demo against the signed native runtime](./docs/assets/mojo-quickstart-demo.gif)
+
 ## What is open source?
 
 This repository contains Algenta's Python and TypeScript client SDKs, licensed
