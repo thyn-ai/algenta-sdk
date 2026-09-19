@@ -363,7 +363,7 @@ def configure_worker_environment(
         candidates.append(conda_prefix + "/lib/" + libpython + ".so")
     # Fallback: the libpython bundled beside the worker in the wheel.
     var slash = worker_path.rfind("/")
-    if slash > 0:
+    if slash >= 0:  # 0 = the worker sits directly under the filesystem root
         var worker_dir = String(worker_path[byte = :slash])
         comptime if CompilationTarget.is_macos():
             candidates.append(worker_dir + "/" + libpython + ".dylib")
