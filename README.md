@@ -10,6 +10,7 @@
 [![codecov](https://codecov.io/gh/thyn-ai/algenta-sdk/branch/main/graph/badge.svg)](https://codecov.io/gh/thyn-ai/algenta-sdk)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/thyn-ai/algenta-sdk/badge)](https://scorecard.dev/viewer/?uri=github.com/thyn-ai/algenta-sdk)
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](./LICENSE)
+[![All Contributors](https://img.shields.io/badge/all_contributors-0-orange.svg)](#contributors)
 
 [Docs](https://docs.algenta.ai) · [Python SDK](./packages/python-sdk) · [TypeScript SDK](./packages/ts-sdk) · [Integrations](https://github.com/thyn-ai/algenta-integrations) · [Examples](./examples) · [Contributing](./CONTRIBUTING.md)
 
@@ -208,6 +209,21 @@ Please also read [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md).
 - **Security reports** → [SECURITY.md](./SECURITY.md) (never a public issue)
 - **Project direction and maintainership** → [GOVERNANCE.md](./GOVERNANCE.md)
 - **Getting help** → [SUPPORT.md](./SUPPORT.md)
+
+## Contributors
+
+Thanks to everyone who contributes to this project — we follow the
+[all-contributors](https://allcontributors.org) specification and recognize
+contributions of [every kind](https://allcontributors.org/docs/en/emoji-key),
+not just code.
+
+<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
+<!-- prettier-ignore-start -->
+<!-- markdownlint-disable -->
+
+<!-- markdownlint-restore -->
+<!-- prettier-ignore-end -->
+<!-- ALL-CONTRIBUTORS-LIST:END -->
 
 ## Community
 
