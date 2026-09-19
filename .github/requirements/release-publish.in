@@ -1,0 +1,6 @@
+# Tooling for the `publish to PyPI (token)` job in
+# .github/workflows/release.yml: the upload client only, nothing else.
+# Hash-locked into release-publish.txt; regenerate with
+#   uv pip compile --universal --generate-hashes --python-version 3.13 \
+#     .github/requirements/release-publish.in -o .github/requirements/release-publish.txt
+twine>=7

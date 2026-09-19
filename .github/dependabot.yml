@@ -1,6 +1,7 @@
 version: 2
 updates:
-  # Only the workflow pins live natively in this repository. packages/python-sdk,
+  # Only the workflow pins and the release-tooling locks under
+  # .github/requirements/ live natively in this repository. packages/python-sdk,
   # packages/ts-sdk and examples/ are mirrored from the Algenta engine (closed
   # source) by the internal sync pipeline, so dependency bumps must land there --
   # a Dependabot PR here would be overwritten by the next sync.
@@ -12,5 +13,19 @@ updates:
       codeql-action:
         patterns:
           - "github/codeql-action/*"
+    commit-message:
+      prefix: "chore(ci)"
+
+  # Hash-locked tooling that release.yml installs with --require-hashes
+  # (.github/requirements/*.in -> *.txt). One grouped PR refreshes the pins
+  # and their --hash lines together.
+  - package-ecosystem: "pip"
+    directory: "/.github/requirements"
+    schedule:
+      interval: "weekly"
+    groups:
+      release-tooling:
+        patterns:
+          - "*"
     commit-message:
       prefix: "chore(ci)"
