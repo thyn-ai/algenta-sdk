@@ -9,25 +9,30 @@ name-template: sdk-v$NEXT_PATCH_VERSION
 tag-template: sdk-v$NEXT_PATCH_VERSION
 categories:
   - title: Features
-    labels:
-      - feat
+    when:
+      labels:
+        - feat
   - title: Bug Fixes
-    labels:
-      - fix
+    when:
+      labels:
+        - fix
   - title: Performance
-    labels:
-      - perf
+    when:
+      labels:
+        - perf
   - title: Documentation
-    labels:
-      - docs
-      - documentation
+    when:
+      labels:
+        - docs
+        - documentation
   - title: CI & Maintenance
-    labels:
-      - ci
-      - chore
-      - build
-      - test
-      - refactor
+    when:
+      labels:
+        - ci
+        - chore
+        - build
+        - test
+        - refactor
 change-template: "- $TITLE @$AUTHOR (#$NUMBER)"
 change-title-escapes: '\<*_&'
 template: |
@@ -42,20 +47,29 @@ template: |
   **Full Changelog**: https://github.com/thyn-ai/algenta-sdk/compare/$PREVIOUS_TAG...sdk-v$NEXT_PATCH_VERSION
 autolabeler:
   - label: feat
-    title: '/^feat(\(.+\))?!?:/'
+    title:
+      - '/^feat(\(.+\))?!?:/'
   - label: fix
-    title: '/^fix(\(.+\))?!?:/'
+    title:
+      - '/^fix(\(.+\))?!?:/'
   - label: perf
-    title: '/^perf(\(.+\))?!?:/'
+    title:
+      - '/^perf(\(.+\))?!?:/'
   - label: docs
-    title: '/^docs(\(.+\))?!?:/'
+    title:
+      - '/^docs(\(.+\))?!?:/'
   - label: ci
-    title: '/^ci(\(.+\))?!?:/'
+    title:
+      - '/^ci(\(.+\))?!?:/'
   - label: chore
-    title: '/^chore(\(.+\))?!?:/'
+    title:
+      - '/^chore(\(.+\))?!?:/'
   - label: build
-    title: '/^build(\(.+\))?!?:/'
+    title:
+      - '/^build(\(.+\))?!?:/'
   - label: test
-    title: '/^test(\(.+\))?!?:/'
+    title:
+      - '/^test(\(.+\))?!?:/'
   - label: refactor
-    title: '/^refactor(\(.+\))?!?:/'
+    title:
+      - '/^refactor(\(.+\))?!?:/'
