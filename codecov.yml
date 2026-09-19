@@ -1,0 +1,15 @@
+# Codecov configuration. Coverage is INFORMATION here, not a gate: the per-package floors in CI
+# (pytest --cov fail_under) are what fail a build, so Codecov's own project/patch statuses never
+# block a merge. Uploads authenticate with GitHub OIDC (use_oidc in the workflows) -- no token secret.
+coverage:
+  status:
+    project:
+      default:
+        informational: true
+    patch:
+      default:
+        informational: true
+comment:
+  layout: "condensed_header, diff, flags, files"
+  require_changes: true
+  behavior: default

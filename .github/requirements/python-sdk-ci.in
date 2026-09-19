@@ -1,0 +1,44 @@
+# Hash-pinned dependency set for the python-sdk lane in .github/workflows/ci.yml.
+# python-sdk-ci.txt is compiled from this file, with full transitive hashes, by:
+#
+#   cd .github/requirements && uv pip compile --generate-hashes --universal \
+#       --python-version 3.13 python-sdk-ci.in -o python-sdk-ci.txt
+#
+# --universal keeps environment markers in the output so the same file installs
+# on the ubuntu-latest runner and on a contributor's laptop. Dependabot (pip
+# ecosystem, see ../dependabot.yml) refreshes the pins and hashes weekly.
+#
+# These files live here, not under packages/python-sdk/, because packages/** is
+# overwritten by the sync from thyn-ai/algenta on every mirror run; only
+# packages/python-sdk/tests/ is native to this repository.
+#
+# The runtime and dev lists mirror packages/python-sdk/pyproject.toml
+# ([project].dependencies and [project.optional-dependencies].dev). When that
+# file gains a dependency, add it here too or the CI install will not have it.
+
+# Runtime dependencies of algenta-sdk (pyproject [project].dependencies).
+httpx>=0.28.0
+pydantic>=2.7.0
+
+# Dev tooling (pyproject [project.optional-dependencies].dev).
+pytest
+pytest-asyncio
+pytest-cov
+respx
+black
+ruff
+
+# Property-based tests in packages/python-sdk/tests/test_properties.py. Not in
+# pyproject's dev extra because pyproject is sync-owned.
+hypothesis
+
+# pip itself: the lane used to run `pip install --upgrade pip` unpinned.
+# Listing it here keeps the upgrade but hash-pins it.
+pip
+
+# Build backend for the editable install of packages/python-sdk. CI runs that
+# install with --no-build-isolation so the backend comes from this hashed file
+# instead of an unpinned, isolated build environment
+# (pyproject [build-system].requires).
+setuptools>=68.0
+wheel
