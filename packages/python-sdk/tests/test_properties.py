@@ -25,7 +25,8 @@ import pytest
 
 # CI installs hypothesis from .github/requirements/python-sdk-ci.txt; the package's own `[dev]`
 # extra (mirrored from thyn-ai/algenta) may not carry it yet, so a contributor following
-# CONTRIBUTING.md's `pip install -e ".[dev]" && pytest` skips this module instead of failing collection.
+# CONTRIBUTING.md (`pip install -e ".[dev]" && pytest`) skips this module instead of failing
+# collection.
 pytest.importorskip("hypothesis")
 from hypothesis import given, settings  # noqa: E402
 from hypothesis import strategies as st  # noqa: E402
