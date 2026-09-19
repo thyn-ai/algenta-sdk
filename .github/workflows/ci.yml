@@ -20,6 +20,9 @@ jobs:
     # GitHub-hosted (free for public repositories, serves fork PRs). This lane
     # is secret-free by design so it can run untrusted fork code.
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write  # Codecov OIDC upload
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -27,7 +30,18 @@ jobs:
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: "3.13"
-      - run: python -m pip install --upgrade pip && pip install -e "packages/python-sdk[dev]"
+      # Hash-pinned install (OpenSSF Scorecard Pinned-Dependencies): every wheel
+      # or sdist pip may select is listed with its sha256 in the compiled
+      # requirements file, so a substituted release cannot slip into this lane.
+      # pip itself is in that file, which replaces the former unpinned
+      # `pip install --upgrade pip`. .github/requirements/python-sdk-ci.in says
+      # how the file is regenerated.
+      - run: python -m pip install --require-hashes -r .github/requirements/python-sdk-ci.txt
+      # The SDK is then a local editable install with no dependency resolution
+      # (--no-deps: everything it needs was installed, hashed, above) and no
+      # isolated build env (--no-build-isolation: its setuptools/wheel backend
+      # also comes from the hashed file instead of an unpinned download).
+      - run: python -m pip install --no-deps --no-build-isolation -e packages/python-sdk
       # The coverage floor is 15%, two points under the 17% measured when this
       # gate was introduced. Raise it as coverage improves; never lower it.
       - run: pytest packages/python-sdk -v --cov=decision_engine --cov-report=xml --cov-fail-under=15
@@ -35,6 +49,7 @@ jobs:
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
         with:
+          use_oidc: true  # GitHub OIDC instead of a Codecov token (the job grants id-token write)
           files: ./coverage.xml
           flags: python-sdk
           # Tokenless upload: CODECOV_TOKEN is not required for public
@@ -46,6 +61,9 @@ jobs:
 
   ts-sdk:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write  # Codecov OIDC upload
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -67,6 +85,7 @@ jobs:
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
         with:
+          use_oidc: true  # GitHub OIDC instead of a Codecov token (the job grants id-token write)
           files: ./packages/ts-sdk/coverage/lcov.info
           flags: ts-sdk
           # Tokenless upload, same rationale as the python-sdk lane above.
@@ -74,8 +93,13 @@ jobs:
 
   # examples/shared/*.test.ts use node:test (not vitest) and import the
   # TypeScript SDK sources directly, so they run through tsx, which resolves
-  # the .ts specifiers. The examples tree has no package.json of its own, so
-  # tsx is installed ad hoc, pinned to an exact version.
+  # the .ts specifiers. The examples tree has no package.json of its own (it is
+  # mirrored from the Algenta engine), so tsx comes from the tiny CI-only
+  # package in .github/tsx-runner: its committed package-lock.json pins tsx and
+  # its whole dependency tree, and `npm ci` refuses to install anything that
+  # does not match it. (Scorecard Pinned-Dependencies treats only `npm ci` as
+  # pinned; an exact `npm install tsx@x.y.z` still leaves the transitive tree
+  # floating.)
   examples-shared:
     runs-on: ubuntu-latest
     steps:
@@ -85,10 +109,11 @@ jobs:
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: "24"
-      - name: Install tsx (pinned)
-        run: npm install --no-save --ignore-scripts --prefix "$RUNNER_TEMP/tsx-runner" tsx@4.23.13
+      - name: Install tsx (npm ci against the committed lockfile)
+        working-directory: .github/tsx-runner
+        run: npm ci --ignore-scripts
       - name: Run shared example tests
-        run: '"$RUNNER_TEMP/tsx-runner/node_modules/.bin/tsx" --test examples/shared/*.test.ts'
+        run: .github/tsx-runner/node_modules/.bin/tsx --test examples/shared/*.test.ts
 
   # Blocks a PR that hand-edits either generated contract snapshot, UNLESS
   # the PR was opened by the internal sync App that mirrors contract updates
