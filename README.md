@@ -188,6 +188,34 @@ tied to:
 independently agree — see
 [`scripts/verify_release_authorization.py`](./scripts/verify_release_authorization.py).
 
+Each [GitHub Release](https://github.com/thyn-ai/algenta-sdk/releases) cut
+since signing was added (September 2026) carries, next to the wheel, the sdist
+and `release-manifest.json`:
+
+- a keyless [Sigstore](https://www.sigstore.dev/) signature bundle per asset
+  (`<asset>.sigstore.json`), signed by the `release.yml` run itself;
+- SLSA build provenance covering all three assets (`multiple.intoto.jsonl`),
+  from the [SLSA generic generator](https://github.com/slsa-framework/slsa-github-generator).
+
+To check an asset against both, with `VERSION` set to the release version
+(`VERSION=1.0.15` for tag `sdk-v1.0.15`):
+
+```bash
+pipx run sigstore verify identity "algenta_sdk-${VERSION}-py3-none-any.whl" \
+  --bundle "algenta_sdk-${VERSION}-py3-none-any.whl.sigstore.json" \
+  --cert-oidc-issuer https://token.actions.githubusercontent.com \
+  --cert-identity "https://github.com/thyn-ai/algenta-sdk/.github/workflows/release.yml@refs/tags/sdk-v${VERSION}"
+
+slsa-verifier verify-artifact "algenta_sdk-${VERSION}-py3-none-any.whl" \
+  --provenance-path multiple.intoto.jsonl \
+  --source-uri github.com/thyn-ai/algenta-sdk \
+  --source-tag "sdk-v${VERSION}"
+```
+
+A release published through `release.yml`'s `workflow_dispatch` path was
+signed from the dispatched branch, so its certificate identity ends in
+`@refs/heads/main` instead of the tag; the bundle records which.
+
 ## Versioning
 
 Both packages share one version number, since they wrap one API contract, and
