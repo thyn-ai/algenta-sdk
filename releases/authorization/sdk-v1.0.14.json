@@ -1,0 +1,11 @@
+{
+  "authorized_at": "2026-09-19T05:13:45Z",
+  "contract_sha256": "c9970cc674b28634e2b5d7bad2754a508457876868648e453b14096f51b85f99",
+  "key_id": "sdk-release-2026-08",
+  "schema_version": 1,
+  "sdk_commit": "3f73ea6d52d90e9d9e64b054e9d58c7caf5ca317",
+  "sdk_repo": "thyn-ai/algenta-sdk",
+  "signature": "BPwUNF4LZrd5X1EGF9vU6M0H56q1Rp+cNQipywgke7Uq6x9p8ofmDBNK6S5RAo7xBkSesExbc6+EtrkzP3nyAA==",
+  "signature_algorithm": "Ed25519",
+  "version": "1.0.14"
+}
