@@ -42,9 +42,10 @@ jobs:
       # isolated build env (--no-build-isolation: its setuptools/wheel backend
       # also comes from the hashed file instead of an unpinned download).
       - run: python -m pip install --no-deps --no-build-isolation -e packages/python-sdk
-      # The coverage floor is 15%, two points under the 17% measured when this
-      # gate was introduced. Raise it as coverage improves; never lower it.
-      - run: pytest packages/python-sdk -v --cov=decision_engine --cov-report=xml --cov-fail-under=15
+      # The coverage floor is 96%, two points under the 98% measured on
+      # 2026-09-19 with this exact command. Raise it as coverage improves;
+      # never lower it.
+      - run: pytest packages/python-sdk -v --cov=decision_engine --cov-report=xml --cov-fail-under=96
       - run: ruff check packages/python-sdk
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
