@@ -2,7 +2,7 @@
 # Order matters — later matches take precedence, so the generated-contract
 # rules (most specific) are listed after the package-wide rules.
 #
-# NOTE: the thyn-ai org has exactly one member today (@angelatgithub, verified
+# NOTE: the thyn-ai org has exactly one member today (@0xamlab, verified
 # via `gh api orgs/thyn-ai/members`) and no teams. Every entry below is that
 # one real account, not a placeholder — replace with real teams
 # (@thyn-ai/python-sdk-maintainers, @thyn-ai/ts-sdk-maintainers,
@@ -12,15 +12,15 @@
 # solo-owner CODEOWNERS with that setting on would make every PR unmergeable
 # by the only person who can open one.
 
-/packages/python-sdk/ @angelatgithub
-/packages/ts-sdk/     @angelatgithub
+/packages/python-sdk/ @0xamlab
+/packages/ts-sdk/     @0xamlab
 
 # Generated contract snapshots — regenerated internally, never hand-edited.
 # Routing these to a distinct owner means any PR touching them (accidentally
 # or otherwise) gets flagged for deliberate review rather than being
 # mergeable as an incidental part of a routine SDK PR.
-/packages/python-sdk/decision_engine/_contract.py @angelatgithub
-/packages/ts-sdk/src/contract.ts                  @angelatgithub
+/packages/python-sdk/decision_engine/_contract.py @0xamlab
+/packages/ts-sdk/src/contract.ts                  @0xamlab
 
 # Workflow files are as security-sensitive as the code they run.
-/.github/ @angelatgithub
+/.github/ @0xamlab
