@@ -84,6 +84,16 @@ All CI checks must pass, including on forked-repository pull requests — CI
 runs with no secrets and no elevated permissions, so it's safe to run
 automatically on every PR.
 
+## Recognizing contributors
+
+This project follows the [all-contributors](https://allcontributors.org)
+specification: everyone who contributes — code, docs, bug reports, reviews,
+or any other [contribution type](https://allcontributors.org/docs/en/emoji-key) —
+is recognized in the [README](./README.md#contributors). Maintainers add
+contributors by commenting `@all-contributors please add @user for code`
+(replacing `code` with the relevant contribution type) on an issue or pull
+request, and the bot opens a pull request updating the contributors table.
+
 ## Licensing
 
 By submitting a pull request you agree that your contribution is licensed
