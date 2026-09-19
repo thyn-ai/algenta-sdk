@@ -1,9 +1,11 @@
 version: 2
 updates:
-  # Only the workflow pins live natively in this repository. packages/python-sdk,
-  # packages/ts-sdk and examples/ are mirrored from the Algenta engine (closed
-  # source) by the internal sync pipeline, so dependency bumps must land there --
-  # a Dependabot PR here would be overwritten by the next sync.
+  # packages/python-sdk, packages/ts-sdk and examples/ are mirrored from the
+  # Algenta engine (closed source) by the internal sync pipeline, so dependency
+  # bumps for the SDKs themselves must land there -- a Dependabot PR here would
+  # be overwritten by the next sync. What lives natively in this repository, and
+  # is therefore refreshed from here, is the workflow action pins plus the two
+  # hash-pinned CI tooling manifests under .github/ (the pip and npm entries).
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
@@ -12,5 +14,32 @@ updates:
       codeql-action:
         patterns:
           - "github/codeql-action/*"
+    commit-message:
+      prefix: "chore(ci)"
+
+  # .github/requirements/python-sdk-ci.{in,txt}: the hash-pinned pytest /
+  # hypothesis / ruff toolchain the python-sdk CI lane installs. Grouped so one
+  # weekly PR refreshes every pin and its hashes together.
+  - package-ecosystem: "pip"
+    directory: "/.github/requirements"
+    schedule:
+      interval: "weekly"
+    groups:
+      python-sdk-ci-tooling:
+        patterns:
+          - "*"
+    commit-message:
+      prefix: "chore(ci)"
+
+  # .github/tsx-runner/package-lock.json: the pinned tsx tree the
+  # examples-shared CI lane runs through.
+  - package-ecosystem: "npm"
+    directory: "/.github/tsx-runner"
+    schedule:
+      interval: "weekly"
+    groups:
+      tsx-runner:
+        patterns:
+          - "*"
     commit-message:
       prefix: "chore(ci)"
