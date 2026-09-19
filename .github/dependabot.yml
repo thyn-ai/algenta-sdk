@@ -17,9 +17,10 @@ updates:
     commit-message:
       prefix: "chore(ci)"
 
-  # .github/requirements/python-sdk-ci.{in,txt}: the hash-pinned pytest /
-  # hypothesis / ruff toolchain the python-sdk CI lane installs. Grouped so one
-  # weekly PR refreshes every pin and its hashes together.
+  # .github/requirements/*.{in,txt}: the hash-pinned toolchains CI installs with
+  # --require-hashes -- python-sdk-ci (pytest / hypothesis / ruff for the python-sdk
+  # lane) and release-* (cryptography, build, twine for release.yml). One weekly
+  # grouped PR refreshes every pin and its hashes together.
   - package-ecosystem: "pip"
     directory: "/.github/requirements"
     schedule:
