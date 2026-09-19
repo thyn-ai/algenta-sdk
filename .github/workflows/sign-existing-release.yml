@@ -1,0 +1,167 @@
+# Signs the assets an EXISTING GitHub Release already carries, after the fact.
+#
+# Why this exists: releases published before release.yml grew its
+# `sign-release-assets` job (sdk-v1.0.8 .. sdk-v1.0.14) carry a wheel, an
+# sdist and release-manifest.json but no Sigstore bundles, which is what
+# OpenSSF Scorecard's Signed-Releases check scores. Every release cut since
+# is signed by release.yml itself; this workflow is only for the ones that
+# predate it.
+#
+# What it does: download the Release's published assets exactly as they are,
+# sign them with Sigstore keyless signing under this run's OIDC identity, and
+# upload the resulting <asset>.sigstore.json bundles to the same Release.
+#
+# What it never does: build, publish, replace or delete anything. The bytes
+# that get signed are the bytes the Release already serves, nothing is checked
+# out (there is deliberately no actions/checkout step), and a Release that
+# already carries any .sigstore.json is refused outright -- there is no
+# re-sign / overwrite path (`gh release upload` runs without --clobber).
+#
+# Identity note for consumers: a bundle produced here names THIS workflow file
+# at the ref it was dispatched from (normally
+# sign-existing-release.yml@refs/heads/main), not release.yml@refs/tags/<tag>
+# as release.yml's own bundles do -- see releases/README.md. Signing settings
+# (action pins, python version, verify + issuer) mirror release.yml's
+# `sign-release-assets` job so the two paths stay comparable.
+
+name: sign existing release
+
+"on":
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing Release tag to sign, e.g. sdk-v1.0.12 (must match sdk-vX.Y.Z)"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+# One run per tag at a time, and never cancel one mid-flight: a cancelled run
+# could leave a Release with some bundles uploaded and some not.
+concurrency:
+  group: sign-existing-release-${{ inputs.tag }}
+  cancel-in-progress: false
+
+jobs:
+  sign:
+    name: sign the published assets of ${{ inputs.tag }} (Sigstore keyless)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write # download the Release assets, upload the .sigstore.json bundles
+      id-token: write # Sigstore keyless signing with this job's OIDC identity
+    steps:
+      # The input reaches the shell only through an environment variable,
+      # never by interpolation into the script, and nothing below runs unless
+      # it is exactly one sdk-vX.Y.Z tag. The validated value is re-exported
+      # as TAG so every later step reads the same checked string.
+      - name: Validate the requested tag
+        env:
+          REQUESTED_TAG: ${{ inputs.tag }}
+        run: |
+          set -euo pipefail
+          tag_re='^sdk-v[0-9]+\.[0-9]+\.[0-9]+$'
+          if [[ ! "$REQUESTED_TAG" =~ $tag_re ]]; then
+            echo "::error::Invalid tag input '$REQUESTED_TAG' -- must match sdk-vX.Y.Z (e.g. sdk-v1.0.12)." >&2
+            exit 1
+          fi
+          echo "TAG=$REQUESTED_TAG" >> "$GITHUB_ENV"
+          echo "Tag '$REQUESTED_TAG' accepted."
+
+      # Refuse to run against a Release that already has any signature
+      # bundle: this workflow adds bundles once, it never re-signs. (This also
+      # fails loud if the Release does not exist.)
+      - name: Refuse if the Release already carries signature bundles
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          existing_bundles="$(gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json assets \
+            --jq '.assets[].name | select(endswith(".sigstore.json"))')"
+          if [[ -n "$existing_bundles" ]]; then
+            echo "::error::Release $TAG already carries signature bundles -- refusing to re-sign. Existing:" >&2
+            while IFS= read -r bundle_name; do echo "  $bundle_name" >&2; done <<< "$existing_bundles"
+            exit 1
+          fi
+          echo "Release $TAG carries no .sigstore.json assets; proceeding."
+
+      # Only the three asset kinds a Release of this repo carries (wheel,
+      # sdist, manifest) -- nothing else is ever pulled onto the runner.
+      - name: Download the published Release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --dir assets \
+            --pattern '*.whl' \
+            --pattern '*.tar.gz' \
+            --pattern 'release-manifest.json'
+          shopt -s nullglob
+          downloaded=(assets/*)
+          if [[ ${#downloaded[@]} -eq 0 ]]; then
+            echo "::error::No assets matching *.whl, *.tar.gz or release-manifest.json were downloaded for $TAG -- nothing to sign." >&2
+            exit 1
+          fi
+          echo "Downloaded ${#downloaded[@]} asset(s) to sign:"
+          ls -l assets/
+
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.13"
+
+      # Same action, pin and settings as release.yml's `sign-release-assets`
+      # job. Bundles land next to each input as assets/<name>.sigstore.json.
+      - uses: sigstore/gh-action-sigstore-python@790bc6befb9d733738f18d8f895854b453640ec9 # v3.5.0
+        with:
+          inputs: assets/*
+          # Verify each bundle right after signing, against the identity the
+          # certificate must carry: THIS workflow file at the run's ref (the
+          # branch it was dispatched from). That is also the identity
+          # consumers verify -- see releases/README.md.
+          verify: true
+          verify-cert-identity: ${{ github.server_url }}/${{ github.repository }}/.github/workflows/sign-existing-release.yml@${{ github.ref }}
+          verify-oidc-issuer: https://token.actions.githubusercontent.com
+          # The action's own upload fires only on `release` events; this
+          # workflow runs on dispatch, so the step below uploads.
+          release-signing-artifacts: false
+
+      # No --clobber on purpose: the pre-check above guarantees none of these
+      # names exist on the Release yet, so a collision here is a real error.
+      - name: Upload the signature bundles to the Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          bundles=(assets/*.sigstore.json)
+          if [[ ${#bundles[@]} -eq 0 ]]; then
+            echo "::error::Signing produced no .sigstore.json bundles -- nothing to upload." >&2
+            exit 1
+          fi
+          gh release upload "$TAG" "${bundles[@]}" --repo "$GITHUB_REPOSITORY"
+          echo "Uploaded ${#bundles[@]} bundle(s) to $TAG:"
+          printf '  %s\n' "${bundles[@]##*/}"
+
+      # Read the Release back and confirm every signed asset now has its
+      # bundle next to it -- the upload above is only done when this agrees.
+      - name: Confirm the Release now carries one bundle per signed asset
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          release_assets="$(gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json assets --jq '.assets[].name')"
+          missing=0
+          for bundle in assets/*.sigstore.json; do
+            name="${bundle##*/}"
+            if ! grep -qxF -- "$name" <<< "$release_assets"; then
+              echo "::error::$name is not attached to Release $TAG after upload." >&2
+              missing=1
+            fi
+          done
+          if [[ $missing -ne 0 ]]; then
+            exit 1
+          fi
+          echo "Release $TAG now carries:"
+          while IFS= read -r asset_name; do echo "  $asset_name"; done <<< "$release_assets"
