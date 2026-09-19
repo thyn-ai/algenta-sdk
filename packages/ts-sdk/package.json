@@ -1,6 +1,6 @@
 {
   "name": "algenta-sdk",
-  "version": "1.0.14",
+  "version": "1.0.15",
   "description": "TypeScript and JavaScript SDK for Algenta's HTTP API, local runtime, simulations, governed data, and repository intelligence",
   "main": "dist/index.js",
   "module": "dist/index.js",
@@ -63,6 +63,7 @@
     "@modelcontextprotocol/sdk": "1.30.0",
     "@types/node": "^24.0.0",
     "@vitest/coverage-v8": "^4.1.11",
+    "fast-check": "4.10.1",
     "typescript": "^5.4.0",
     "vitest": "^4.1.11"
   },
