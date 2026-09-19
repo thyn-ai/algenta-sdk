@@ -1,0 +1,45 @@
+# When a release is published, mirror its notes into the Discussions
+# "Announcements" category so people who watch Discussions (rather than
+# Releases) see it. Best-effort by design: if the category is missing or the
+# lookup fails, the job warns and exits 0 -- announcing must never fail a
+# release.
+name: Announce release
+
+"on":
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+  discussions: write
+
+jobs:
+  announce:
+    name: Post release notes to Discussions
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create Announcements discussion
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_NAME: ${{ github.event.release.name }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+          RELEASE_URL: ${{ github.event.release.html_url }}
+          RELEASE_BODY: ${{ github.event.release.body }}
+        run: |
+          set -euo pipefail
+
+          category_id="$(gh api "repos/${GITHUB_REPOSITORY}/discussions/categories" \
+            --jq '.[] | select(.slug == "announcements") | .id')" || category_id=""
+
+          if [[ -z "${category_id}" ]]; then
+            echo "::warning::Discussion category 'announcements' not found; skipping release announcement."
+            exit 0
+          fi
+
+          title="${RELEASE_NAME:-${RELEASE_TAG}}"
+          body="$(printf '%s\n\n---\n[View release %s](%s)' "${RELEASE_BODY}" "${title}" "${RELEASE_URL}")"
+
+          gh api -X POST "repos/${GITHUB_REPOSITORY}/discussions" \
+            -f title="${title}" \
+            -F category_id="${category_id}" \
+            -f body="${body}"
