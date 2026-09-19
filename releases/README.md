@@ -24,5 +24,7 @@ specific commit as releasable. They are not created directly in this
 repository.
 
 A `release-manifest.json` recording the published artifacts' SHA-256
+
+Each Release also carries a keyless Sigstore signature bundle for every asset (`<asset>.sigstore.json`, verifiable with `sigstore verify github`) and SLSA build provenance (`multiple.intoto.jsonl`, verifiable with `slsa-verifier`), attached by the release workflow after publishing.
 hashes is attached to each version's [GitHub Release](https://github.com/thyn-ai/algenta-sdk/releases)
 rather than committed here.
