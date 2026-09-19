@@ -78,7 +78,11 @@ console.log(result.data.result);
 `new AlgentaClient({ baseUrl: "http://localhost:8000" })` in TypeScript — and
 use the API key provisioned by your operator. The `self_hosted` and
 `air_gapped` deployment profiles fail closed: they never silently fall back to
-Algenta's cloud.
+Algenta's cloud. Framework integrations in
+[thyn-ai/algenta-integrations](https://github.com/thyn-ai/algenta-integrations)
+take the opposite default on purpose: they are self-hosted-first, resolve their
+endpoint from `ALGENTA_BASE_URL` or an explicit `base_url`, and never default or
+fall back to the hosted API.
 
 The full API surface — governed queries, connectors, simulations, jobs,
 triggers, agent runs, decisions, repository intelligence, and the TypeScript
