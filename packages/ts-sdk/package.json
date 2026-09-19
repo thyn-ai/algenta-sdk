@@ -1,6 +1,6 @@
 {
   "name": "algenta-sdk",
-  "version": "1.0.12",
+  "version": "1.0.13",
   "description": "TypeScript and JavaScript SDK for Algenta's HTTP API, local runtime, simulations, governed data, and repository intelligence",
   "main": "dist/index.js",
   "module": "dist/index.js",
@@ -29,16 +29,20 @@
   },
   "keywords": [
     "algenta",
-    "sdk",
     "typescript",
-    "javascript",
     "decision",
     "runtime",
     "simulation",
     "monte-carlo",
     "governed-data",
     "repository-intelligence",
-    "api"
+    "mcp",
+    "model-context-protocol",
+    "ai-agents",
+    "agent-governance",
+    "mojo",
+    "receipts",
+    "approvals"
   ],
   "homepage": "https://docs.algenta.ai/sdks/typescript",
   "repository": {
