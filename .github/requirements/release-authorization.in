@@ -1,0 +1,6 @@
+# Tooling for the `verify release authorization (D0)` job in
+# .github/workflows/release.yml: Ed25519 verification of the authorization
+# record. Hash-locked into release-authorization.txt; regenerate with
+#   uv pip compile --universal --generate-hashes --python-version 3.13 \
+#     .github/requirements/release-authorization.in -o .github/requirements/release-authorization.txt
+cryptography

@@ -2,6 +2,11 @@
 # the Algenta engine repository (closed source) or this repo, that ever runs
 # `twine upload` / `npm publish` for real.
 #
+# Every asset attached to the GitHub Release (wheel, sdist,
+# release-manifest.json) also gets a keyless Sigstore signature bundle
+# (<asset>.sigstore.json) and SLSA build provenance (multiple.intoto.jsonl),
+# produced by the last two jobs -- see "Verify a release" in README.md.
+#
 # Release authority belongs to the Algenta engine (closed source): this
 # workflow refuses to build or publish anything unless
 # releases/authorization/sdk-<tag>.json verifies against the exact tag/commit
@@ -110,7 +115,39 @@ jobs:
         with:
           python-version: "3.13"
 
-      - run: python -m pip install --quiet --disable-pip-version-check cryptography
+      # Tooling comes from hash-locked requirements files
+      # (.github/requirements/*.txt, refreshed by Dependabot), read from the
+      # commit THIS workflow file was loaded from: github.workflow_sha is the
+      # tag on a push and the dispatched branch's tip on a workflow_dispatch.
+      # Not from the checked-out tree, for the same reason the authorization
+      # is read from main below: a dispatch of an older tag must still find
+      # the files that belong to the workflow copy it is running. Fetched once
+      # here, before any side effect, and handed to the jobs below as the
+      # `release-tooling` artifact (publish-pypi has no checkout by design).
+      - name: Fetch the hash-locked tooling requirements
+        env:
+          GH_FETCH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          WORKFLOW_SHA: ${{ github.workflow_sha }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/release-tooling"
+          for name in release-authorization release-build release-publish; do
+            if ! curl -sfL \
+                -H "Authorization: Bearer ${GH_FETCH_TOKEN}" \
+                -H "Accept: application/vnd.github.raw+json" \
+                -o "$RUNNER_TEMP/release-tooling/${name}.txt" \
+                "https://api.github.com/repos/${GITHUB_REPOSITORY}/contents/.github/requirements/${name}.txt?ref=${WORKFLOW_SHA}"; then
+              echo "::error::Could not fetch .github/requirements/${name}.txt at ${WORKFLOW_SHA} -- refusing to install unpinned tooling." >&2
+              exit 1
+            fi
+          done
+
+      - run: python -m pip install --quiet --disable-pip-version-check --require-hashes -r "$RUNNER_TEMP/release-tooling/release-authorization.txt"
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: release-tooling
+          path: ${{ runner.temp }}/release-tooling/
 
       # The authorization file is merged to `main` AFTER signing (a commit can
       # never contain its own authorization -- see the lifecycle note in the
@@ -148,6 +185,9 @@ jobs:
     name: build the exact authorized source
     needs: verify-authorization
     runs-on: ubuntu-latest
+    outputs:
+      # base64(sha256sum) of the release assets, consumed by `provenance`.
+      hashes: ${{ steps.hash.outputs.hashes }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -189,10 +229,16 @@ jobs:
             echo "export const BUILD_RUN = \"$BUILD_RUN\";"
           } > packages/ts-sdk/src/_build_info.ts
 
+      # Hash-locked tooling from D0 (see the fetch step there).
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: release-tooling
+          path: ${{ runner.temp }}/release-tooling
+
       - name: Build the Python SDK (wheel + sdist)
         run: |
           set -euo pipefail
-          python -m pip install --quiet --disable-pip-version-check --upgrade build twine
+          python -m pip install --quiet --disable-pip-version-check --require-hashes -r "$RUNNER_TEMP/release-tooling/release-build.txt"
           python -P -m build packages/python-sdk
           twine check packages/python-sdk/dist/*
 
@@ -246,6 +292,19 @@ jobs:
           Path("release-manifest.json").write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n")
           PYEOF
 
+      # Subjects for the SLSA provenance: sha256sum of exactly the files the
+      # Release carries, by asset (base) name so the provenance subjects match
+      # the asset names, base64-encoded as the generator expects.
+      - name: Compute release-asset digests for provenance
+        id: hash
+        run: |
+          set -euo pipefail
+          {
+            (cd packages/python-sdk/dist && sha256sum -- *)
+            sha256sum release-manifest.json
+          } | tee "$RUNNER_TEMP/subjects.sha256sum"
+          echo "hashes=$(base64 -w0 "$RUNNER_TEMP/subjects.sha256sum")" >> "$GITHUB_OUTPUT"
+
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: release-artifacts
@@ -269,6 +328,12 @@ jobs:
           name: release-artifacts
           path: .
 
+      # Hash-locked tooling from D0 (see the fetch step there); still no checkout.
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: release-tooling
+          path: ${{ runner.temp }}/release-tooling
+
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: "3.13"
@@ -279,7 +344,7 @@ jobs:
           TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
         run: |
           set -euo pipefail
-          python -m pip install --quiet --disable-pip-version-check --upgrade "twine>=7"
+          python -m pip install --quiet --disable-pip-version-check --require-hashes -r "$RUNNER_TEMP/release-tooling/release-publish.txt"
           twine upload --non-interactive --skip-existing packages/python-sdk/dist/*
 
   publish-npm:
@@ -336,3 +401,69 @@ jobs:
           files: |
             release-manifest.json
             packages/python-sdk/dist/*
+
+  # The two jobs below run only once the Release exists and stay behind the
+  # D0 gate through the same `needs:` chain as everything else. They sign and
+  # attest the bytes the Release carries -- the `release-artifacts` artifact
+  # the Release was uploaded from -- with nothing rebuilt or checked out.
+  sign-release-assets:
+    name: sign the release assets (Sigstore keyless)
+    needs: [verify-authorization, build, publish-github-release]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # upload the .sigstore.json bundles to the Release
+      id-token: write # Sigstore keyless signing with this job's OIDC identity
+    steps:
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: release-artifacts
+          path: .
+
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.13"
+
+      - uses: sigstore/gh-action-sigstore-python@790bc6befb9d733738f18d8f895854b453640ec9 # v3.5.0
+        with:
+          inputs: |
+            release-manifest.json
+            packages/python-sdk/dist/*
+          # Verify each bundle right after signing, against the identity the
+          # certificate must carry: this workflow file at the run's ref (the
+          # tag on a push, the dispatched branch on a workflow_dispatch).
+          # That is also the identity consumers verify -- see README.md.
+          verify: true
+          verify-cert-identity: ${{ github.server_url }}/${{ github.repository }}/.github/workflows/release.yml@${{ github.ref }}
+          verify-oidc-issuer: https://token.actions.githubusercontent.com
+          # The action's own upload fires only on `release` events; this
+          # workflow runs on tag push / dispatch, so the step below uploads.
+          release-signing-artifacts: false
+
+      - uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
+        with:
+          tag_name: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+          files: |
+            release-manifest.json.sigstore.json
+            packages/python-sdk/dist/*.sigstore.json
+
+  provenance:
+    name: attach SLSA provenance (generic generator)
+    needs: [verify-authorization, build, publish-github-release]
+    permissions:
+      actions: read # the generator reads this run's workflow metadata
+      id-token: write # keyless signing of the provenance
+      contents: write # upload multiple.intoto.jsonl to the Release
+    # Referenced by TAG -- deliberately the one exception to this repo's
+    # SHA-pinning. The generator downloads its builder binary from the
+    # release named by the ref it was called at, and slsa-verifier trusts the
+    # generator only at a `vX.Y.Z` tag (its README, "Referencing SLSA builders
+    # and generators"; slsa-framework/slsa-verifier#12). A SHA here fails the
+    # job or yields provenance no verifier accepts. ossf/scorecard's own
+    # release does the same. v2.1.0 = f7dd8c54c2067bafc12ca7a55595d5ee9b75204a.
+    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.1.0
+    with:
+      base64-subjects: ${{ needs.build.outputs.hashes }}
+      upload-assets: true
+      # Named explicitly in both trigger paths: on a dispatch the run sits on
+      # a branch, not on a new tag, so the generator must be told the Release.
+      upload-tag-name: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
