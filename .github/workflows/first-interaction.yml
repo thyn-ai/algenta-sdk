@@ -24,14 +24,14 @@ jobs:
     steps:
       - uses: actions/first-interaction@1c4688942c71f71d4f5502a26ea67c331730fa4d # v3.1.0
         with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-          issue-message: >-
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          issue_message: >-
             Thanks for opening your first issue in the Algenta SDK! A maintainer
             will take a look as soon as possible. If you would like to work on a
             fix yourself, [CONTRIBUTING.md](https://github.com/thyn-ai/algenta-sdk/blob/main/CONTRIBUTING.md)
             and the [good first issues](https://github.com/thyn-ai/algenta-sdk/contribute)
             list are good places to start.
-          pr-message: >-
+          pr_message: >-
             Thanks for opening your first pull request in the Algenta SDK!
             Please make sure CI is green and that the change follows
             [CONTRIBUTING.md](https://github.com/thyn-ai/algenta-sdk/blob/main/CONTRIBUTING.md).
