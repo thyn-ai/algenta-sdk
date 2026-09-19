@@ -1,0 +1,7 @@
+# Tooling for the `build the exact authorized source` job in
+# .github/workflows/release.yml: wheel/sdist build + metadata check.
+# Hash-locked into release-build.txt; regenerate with
+#   uv pip compile --universal --generate-hashes --python-version 3.13 \
+#     .github/requirements/release-build.in -o .github/requirements/release-build.txt
+build
+twine
