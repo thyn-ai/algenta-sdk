@@ -5,6 +5,11 @@ name: CodeQL
     branches: [main]
   pull_request:
     branches: [main]
+  # Merge-queue builds targeting main. The three "CodeQL (<language>)" checks
+  # are required by the ruleset, so they must report on the merge group's own
+  # commit or the queue would wait for them until it times out.
+  merge_group:
+    branches: [main]
   schedule:
     - cron: "23 6 * * 1"
   workflow_dispatch:

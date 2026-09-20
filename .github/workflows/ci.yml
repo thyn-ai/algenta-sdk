@@ -1,4 +1,5 @@
-# Tier-1, untrusted CI. Runs on every PR, including ones from forks. No
+# Tier-1, untrusted CI. Runs on every PR, including ones from forks, and on
+# every merge-group build the merge queue creates for main. No
 # secrets are referenced anywhere in this file, on purpose — this workflow
 # must be safe to run against fully adversarial, contributor-controlled code.
 #
@@ -9,6 +10,13 @@ name: ci
 
 on:
   pull_request:
+  # Merge-queue builds. The ruleset on main lists this workflow's jobs as
+  # required status checks, and the queue only merges an entry once every
+  # required check has reported on the merge group's own commit -- so the
+  # jobs have to run there too. A required check with no merge_group trigger
+  # never reports, and the entry sits in the queue until
+  # check_response_timeout_minutes evicts it.
+  merge_group:
   push:
     branches: [main]
 
@@ -124,7 +132,11 @@ jobs:
   # itself) — never on a commit author string, which any contributor can set
   # to anything.
   contract-drift-check:
-    # PR-only: on a main push there is no base ref to diff against.
+    # PR-only: a main push has no base ref to diff against, and a merge-group
+    # build carries no pull_request payload (so no PR author to gate on). On
+    # merge_group the job is therefore skipped, which GitHub counts as a
+    # passing required check; the gate itself already ran, and had to pass,
+    # on the pull request before the queue accepted it.
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
