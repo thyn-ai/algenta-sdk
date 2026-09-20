@@ -2,7 +2,7 @@
 
 # Algenta SDK
 
-**Python and TypeScript client libraries for [Algenta](https://algenta.ai) — the governed AI decision engine.**
+**Python and TypeScript client libraries for [Algenta](https://algenta.ai) — self-hosted building blocks for AI applications.**
 
 [![CI](https://github.com/thyn-ai/algenta-sdk/actions/workflows/ci.yml/badge.svg)](https://github.com/thyn-ai/algenta-sdk/actions/workflows/ci.yml)
 [![PyPI](https://img.shields.io/pypi/v/algenta-sdk?label=PyPI)](https://pypi.org/project/algenta-sdk/)
@@ -18,13 +18,14 @@
 
 </div>
 
-Algenta is a governed AI decision engine: every workload runs under an explicit
-execution policy, and every consequential action is attributable. These SDKs
-give you typed access to governed data queries, Monte Carlo simulations and
-recommendations, decision memory with execution receipts that pin the policy
-and schema snapshots each execution ran under, agent runs with
-human-in-the-loop approvals, managed connectors, and a full audit trail —
-enforced by the engine, never by client-side convention.
+Custom Mojo kernels give Algenta its speed. Your team never writes a line of
+Mojo — the blocks speak Python and TypeScript. On your infrastructure, not
+ours. These SDKs are how Python and TypeScript call the engine: typed access
+to governed data queries, Monte Carlo simulations and recommendations,
+decision memory with execution receipts that pin the policy and schema
+snapshots each execution ran under, agent runs with human-in-the-loop
+approvals, managed connectors, and a full audit trail — enforced by the
+engine, never by client-side convention.
 
 ## Installation
 
@@ -269,11 +270,11 @@ not just code.
 
 ## Related repositories
 
-Open-source repositories from the Algenta team. The Algenta engine itself is proprietary; everything listed here is Apache-2.0. Issues and discussions are welcome in whichever repository owns the code.
+Open-source tooling around Algenta, from the Algenta team. The Algenta engine itself is proprietary; everything listed here is Apache-2.0. Issues and discussions are welcome in whichever repository owns the code.
 
-- [thyn-ai/algenta-sdk](https://github.com/thyn-ai/algenta-sdk) (this repository) — Python & TypeScript SDKs for the Algenta decision engine: governed tool profiles, execution receipts, approvals.
+- [thyn-ai/algenta-sdk](https://github.com/thyn-ai/algenta-sdk) (this repository) — Python and TypeScript SDKs for Algenta: governed data queries, simulations, decision memory with execution receipts, agent runs with approvals.
 - [thyn-ai/algenta-integrations](https://github.com/thyn-ai/algenta-integrations) — Framework integrations for Algenta: LangChain, LlamaIndex, pydantic-ai, MAF, Haystack, LiteLLM, Ray Serve, vLLM, Vercel AI SDK and n8n.
 - [thyn-ai/mojo-kernels](https://github.com/thyn-ai/mojo-kernels) — Clean-room Mojo kernels as drop-in accelerators for popular Python/TypeScript libraries, with bit-exact parity and pure-language fallbacks.
 - [thyn-ai/security-toolchain](https://github.com/thyn-ai/security-toolchain) — The pinned, checksum-verified security toolchain (Gitleaks, Opengrep, OSV-Scanner, Trivy config, actionlint) that every thyn-ai repository runs locally and in CI.
-- [thyn-ai/feedback](https://github.com/thyn-ai/feedback) — Public issue intake for the Algenta family of open-source projects and the Codna GitHub App.
-- [thyn-ai/codna-action](https://github.com/thyn-ai/codna-action) — Public GitHub Action wrapper for Codna.
+- [thyn-ai/feedback](https://github.com/thyn-ai/feedback) — Public issue intake for the open-source tooling around Algenta and for the Codna GitHub App.
+- [thyn-ai/codna-action](https://github.com/thyn-ai/codna-action) — GitHub Action for Codna: fix, review or secure a repository in CI through the same packaged local runtime the CLI uses.

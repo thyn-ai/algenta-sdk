@@ -29,5 +29,5 @@ npm-debug.log*
 *.pem
 *.key
 
-# Internal working documents — not part of the open-source project
+# Internal working documents — never published in this repository
 deep-research-report*

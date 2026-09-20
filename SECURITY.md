@@ -55,7 +55,7 @@ steps to reproduce or a proof of concept, and the package version you tested.
 `security@algenta.ai`, same as above, rather than filing here):
 
 - The private control-plane license-issuance service
-- Algenta Engine entitlement/license enforcement itself
+- Algenta engine entitlement/license enforcement itself
 - Any private activation or relay infrastructure
 
 We also want to be upfront about the trust model: the SDK is designed to be

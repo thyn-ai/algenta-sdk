@@ -4,7 +4,7 @@ Thank you for your interest in contributing. This repository holds the
 **Python and TypeScript client SDKs** for Algenta — the parts of the product
 that are open source and meant to be forked, read, and improved by anyone.
 
-The Algenta Engine itself (the compute/decision runtime these SDKs talk to)
+The Algenta engine itself (the runtime these SDKs talk to)
 is closed and lives in a separate, private repository. Nothing in this
 repository grants access to it, and nothing you contribute here can change
 how much execution capacity any license is entitled to — that's enforced
@@ -54,7 +54,7 @@ npm test
 ```
 
 Both SDKs are plain HTTP clients over Algenta's public API — you do not need
-a running Algenta Engine to work on most of this code (see each package's
+a running Algenta engine to work on most of this code (see each package's
 `README.md` for details on what does require a live endpoint to exercise
 end-to-end).
 
