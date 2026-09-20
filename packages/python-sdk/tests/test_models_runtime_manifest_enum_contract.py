@@ -2,16 +2,18 @@
 
 """Observable-behaviour pins for the ``Runtime*Result`` enums and the page iterators.
 
-The runtime-manifest result enums are ``str``-valued enums, so their members are
-compared, hashed, JSON-encoded and validated by *value*. Everything in
-``TestEnumValueSemantics`` and ``TestWireFormat`` must hold whether the classes are
-spelled ``class X(str, Enum)`` or ``class X(StrEnum)``: it pins the wire format and
-the comparison semantics the SDK's users rely on.
+The runtime-manifest result enums are ``StrEnum`` classes (they were
+``class X(str, Enum)`` until the package's ruff target moved from py310 to py312),
+so their members are compared, hashed, JSON-encoded and validated by *value*.
+Everything in ``TestEnumValueSemantics`` and ``TestWireFormat`` held under both
+spellings: it pins the wire format and the comparison semantics the SDK's users rely
+on, and none of it moved with the conversion.
 
-``TestEnumTextForm`` pins the one thing that *does* differ between the two spellings
-(``str()`` / ``format()`` of a member), and ``TestValidateModelRoundTrip`` pins its
-one user-visible consequence inside this SDK: ``model_loader.validate_model`` on an
-already-parsed model whose enum-keyed mappings are non-empty.
+``TestEnumTextForm`` pins the one thing that *did* change: ``str()`` / ``format()`` of
+a member now renders the wire value instead of ``ClassName.member``.
+``TestValidateModelRoundTrip`` pins its one user-visible consequence inside this SDK:
+``model_loader.validate_model`` on an already-parsed model whose enum-keyed mappings
+are non-empty used to raise and now round-trips.
 """
 
 from __future__ import annotations
@@ -19,10 +21,9 @@ from __future__ import annotations
 import inspect
 import json
 from collections.abc import AsyncIterator, Iterator
-from enum import Enum
+from enum import Enum, StrEnum
 
 import pytest
-from pydantic import ValidationError as PydanticValidationError
 
 from decision_engine import model_loader
 from decision_engine.connector_surface_common import (
@@ -60,6 +61,7 @@ def test_every_export_is_a_str_valued_enum_class() -> None:
     for cls in ENUM_CLASSES:
         assert issubclass(cls, str), cls.__name__
         assert issubclass(cls, Enum), cls.__name__
+        assert issubclass(cls, StrEnum), cls.__name__
         assert len(cls) >= 1, cls.__name__
 
 
@@ -182,44 +184,54 @@ class TestWireFormat:
 class TestEnumTextForm:
     """``str()`` / ``format()`` of a member: the one observable difference between spellings.
 
-    Today the classes are ``class X(str, Enum)``: on Python 3.11+ that renders the
-    class-qualified name (``RuntimeMaturityResult.benchmarked``), not the wire value.
+    ``StrEnum`` makes ``str()``/``format()`` return the value. Under the previous
+    ``class X(str, Enum)`` spelling these rendered the class-qualified name
+    (``RuntimeMaturityResult.benchmarked``) on Python 3.11+, which is why ruff calls
+    the UP042 rewrite "unsafe" and why this expectation changed with it.
     """
 
     @pytest.mark.parametrize("cls", ENUM_CLASSES, ids=_class_id)
-    def test_str_and_format_render_the_class_qualified_name(self, cls: type[Enum]) -> None:
+    def test_str_and_format_render_the_wire_value(self, cls: type[Enum]) -> None:
         for member in cls:
             qualified = f"{cls.__name__}.{member.name}"
 
-            assert str(member) == qualified
-            assert f"{member}" == qualified
-            assert format(member) == qualified
+            assert str(member) == member.value
+            assert f"{member}" == member.value
+            assert format(member) == member.value
             assert member.value != qualified  # the two forms really are distinct
 
 
 class TestValidateModelRoundTrip:
     """``validate_model`` on a parsed model: the in-SDK consequence of the text form.
 
-    ``model_loader._normalize_validation_payload`` rebuilds mapping keys with ``str()``;
-    with ``class X(str, Enum)`` an enum key becomes ``"RuntimeMaturityResult.benchmarked"``
-    and re-validation of a non-empty enum-keyed map fails. Pinned here as current
-    behaviour so the fix, when it lands, is a visible expectation change.
+    ``model_loader._normalize_validation_payload`` rebuilds mapping keys with ``str()``.
+    With ``StrEnum`` an enum key becomes its wire value (``"benchmarked"``), so
+    re-validating a parsed model with a non-empty enum-keyed map round-trips. Under
+    the previous ``class X(str, Enum)`` spelling the key became
+    ``"RuntimeMaturityResult.benchmarked"`` and the same call raised a
+    ``ValidationError``: the expectation flipped with the conversion.
     """
 
-    def test_normalisation_renders_enum_keys_with_str(self) -> None:
+    def test_normalisation_renders_enum_keys_as_wire_values(self) -> None:
         normalized = model_loader._normalize_validation_payload(
             {RuntimeMaturityResult.benchmarked: 1}
         )
 
-        assert normalized == {"RuntimeMaturityResult.benchmarked": 1}
+        assert normalized == {"benchmarked": 1}
 
-    def test_revalidating_admin_modules_rejects_class_qualified_count_keys(self) -> None:
+    def test_revalidating_admin_modules_round_trips_the_count_keys(self) -> None:
         parsed = RuntimeAdminModulesResult.model_validate(make_runtime_admin_modules_payload())
 
-        with pytest.raises(PydanticValidationError, match="RuntimeMaturityResult.benchmarked"):
-            model_loader.validate_model("RuntimeAdminModulesResult", parsed)
+        again = model_loader.validate_model("RuntimeAdminModulesResult", parsed)
 
-    def test_revalidating_a_manifest_with_a_populated_maturity_map_fails(self) -> None:
+        assert again == parsed
+        assert again is not parsed
+        assert again.summary.maturity_counts == {
+            RuntimeMaturityResult.benchmarked: 1,
+            RuntimeMaturityResult.enterprise_ready: 1,
+        }
+
+    def test_revalidating_a_manifest_with_a_populated_maturity_map_round_trips(self) -> None:
         manifest = RuntimeManifestResult.model_validate(make_runtime_manifest_payload())
         populated = manifest.model_copy(
             update={
@@ -229,8 +241,13 @@ class TestValidateModelRoundTrip:
             }
         )
 
-        with pytest.raises(PydanticValidationError, match="RuntimeModuleIdResult.embeddings"):
-            model_loader.validate_model("RuntimeManifestResult", populated)
+        again = model_loader.validate_model("RuntimeManifestResult", populated)
+
+        assert again == populated
+        assert again is not populated
+        assert again.maturity[RuntimeModuleIdResult.embeddings] is (
+            RuntimeMaturityResult.enterprise_ready
+        )
 
     def test_revalidating_a_manifest_with_an_empty_maturity_map_round_trips(self) -> None:
         manifest = RuntimeManifestResult.model_validate(make_runtime_manifest_payload())
@@ -267,15 +284,24 @@ class TestPageIteratorTypingContract:
         )
         assert signature.return_annotation == f"{origin.__name__}[ItemT]"
 
-    def test_type_variables_are_module_level_typevars(self) -> None:
-        # Current spelling: ``PageT = TypeVar("PageT")`` / ``ItemT = TypeVar("ItemT")`` at module
-        # scope (PEP 484), unbound and unconstrained, and not generic per PEP 695.
+    @pytest.mark.parametrize(
+        "function", [iter_page_items, iter_page_items_async], ids=["sync", "async"]
+    )
+    def test_type_parameters_are_pep695_and_unconstrained(self, function: object) -> None:
+        # ``def iter_page_items[PageT, ItemT](...)``: the two type variables moved from
+        # module-level ``TypeVar`` assignments (PEP 484) onto the functions (PEP 695) when the
+        # package's ruff target became py312. They stay unbound and unconstrained, and
+        # ``ItemT`` still appears only in the return annotation, exactly as before.
+        type_params = function.__type_params__  # type: ignore[attr-defined]
+
+        assert [parameter.__name__ for parameter in type_params] == ["PageT", "ItemT"]
+        for parameter in type_params:
+            assert parameter.__bound__ is None
+            assert parameter.__constraints__ == ()
+
+    def test_module_no_longer_exposes_the_legacy_typevars(self) -> None:
+        # ``PageT``/``ItemT`` were never in a public ``__all__`` and nothing imported them.
         from decision_engine import connector_surface_common
 
-        for name in ("PageT", "ItemT"):
-            type_variable = getattr(connector_surface_common, name)
-            assert type_variable.__name__ == name
-            assert type_variable.__bound__ is None
-            assert type_variable.__constraints__ == ()
-        assert iter_page_items.__type_params__ == ()
-        assert iter_page_items_async.__type_params__ == ()
+        assert not hasattr(connector_surface_common, "PageT")
+        assert not hasattr(connector_surface_common, "ItemT")
