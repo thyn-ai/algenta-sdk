@@ -1,0 +1,55 @@
+# DRAFT — JSR (jsr.io) publishing for packages/ts-sdk via GitHub Actions OIDC.
+#
+# JSR has first-class OIDC support: no registry token is stored in this repo.
+# Authentication is the workflow's `id-token` plus the package<->repo link
+# configured on jsr.io; provenance attestations are generated automatically.
+#
+# One-time owner prerequisites (cannot be done from this repo):
+#   1. Sign in to https://jsr.io with GitHub (JSR accounts are GitHub OAuth).
+#   2. Create the scope `@algenta` and package `sdk` at https://jsr.io/new
+#      (both @algenta and @thyn-ai were unclaimed as of 2026-09-20).
+#   3. In the package settings on jsr.io, link the GitHub repository
+#      `thyn-ai/algenta-sdk` ("GitHub repository" -> "Link").
+# Until those steps are done the publish step below will fail — keep this
+# workflow on manual dispatch until the first release is intentionally cut.
+#
+# Version source of truth: packages/ts-sdk/jsr.json. `jsr publish` is a no-op
+# when that version is already on JSR, and the guard job below refuses to run
+# when jsr.json and package.json versions disagree.
+#
+# Scope note: the JSR entrypoint intentionally exposes the HTTP client surface
+# only (src/client.ts). The gRPC daemon client (src/runtime_daemon_client.ts)
+# and Mojo native worker (src/native_worker_client.ts) are Node/npm-only for
+# now — they use CJS-only `__dirname` and node: builtins that do not survive
+# JSR's ESM transform. See packages/ts-sdk/jsr.json.
+
+name: jsr-publish
+
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  id-token: write # OIDC token used by `jsr publish` for auth + provenance
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/ts-sdk
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Guard jsr.json version matches package.json
+        run: |
+          node -e "const p=require('./package.json'),j=require('./jsr.json'); \
+            if(p.version!==j.version){ \
+              console.error('version mismatch: package.json='+p.version+' jsr.json='+j.version); \
+              process.exit(1);}"
+
+      - name: Dry-run JSR verification
+        run: npx jsr publish --dry-run
+
+      - name: Publish to JSR
+        run: npx jsr publish
