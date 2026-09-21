@@ -7,7 +7,7 @@ name = "algenta-sdk"
 version = "1.0.17"
 description = "Python SDK for Algenta — self-hosted building blocks for AI applications: governed data queries, simulations, decision memory, and agent runs with approvals"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.12"
 license = "Apache-2.0"
 license-files = ["LICENSE"]
 keywords = ["decision", "simulation", "monte-carlo", "probabilistic", "risk", "api", "algenta", "mcp", "model-context-protocol", "ai-agents", "agent-governance", "mojo", "receipts", "audit-trail"]
@@ -16,8 +16,6 @@ classifiers = [
     "Intended Audience :: Developers",
     "Intended Audience :: Financial and Insurance Industry",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
@@ -53,7 +51,9 @@ include = ["decision_engine*"]
 # own CI first (never from a laptop), which needs thyn-ai/algenta-sdk#29 merged before it can run.
 [tool.ruff]
 line-length = 100
-target-version = "py310"
+# Matches requires-python (>=3.12) above: the package is linted for the interpreters it
+# actually supports, so ruff's pyupgrade rules may assume StrEnum and PEP 695 generics.
+target-version = "py312"
 
 [tool.ruff.lint]
 select = [
