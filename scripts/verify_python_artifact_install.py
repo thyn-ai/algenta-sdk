@@ -13,13 +13,9 @@ from __future__ import annotations
 import subprocess
 import sys
 import tempfile
+import tomllib
 import venv
 from pathlib import Path
-
-try:
-    import tomllib
-except ModuleNotFoundError:  # Python 3.10 compatibility; `build` installs tomli.
-    import tomli as tomllib
 
 _ROOT = Path(__file__).resolve().parents[1]
 _PKG_DIR = _ROOT / "packages" / "python-sdk"

@@ -30,7 +30,7 @@ engine, never by client-side convention.
 ## Installation
 
 ```bash
-pip install algenta-sdk       # Python 3.10+
+pip install algenta-sdk       # Python 3.12+
 npm install algenta-sdk       # TypeScript / JavaScript, Node.js 18+
 ```
 
