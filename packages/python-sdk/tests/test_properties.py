@@ -14,7 +14,7 @@ from __future__ import annotations
 import os
 import re
 from copy import deepcopy
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from email.utils import format_datetime
 from typing import Any
 from unittest import mock
@@ -189,7 +189,7 @@ class TestRetryAfterHeader:
     @_FAST
     @given(st.integers(min_value=-(10**6), max_value=10**6))
     def test_http_date_round_trip(self, delta: int) -> None:
-        now = datetime(2026, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
+        now = datetime(2026, 1, 1, 12, 0, 0, tzinfo=UTC)
         header = format_datetime(now + timedelta(seconds=delta), usegmt=True)
         with mock.patch.object(retry_policy, "utc_now", return_value=now):
             assert parse_retry_after_header(header) == max(delta, 0)
