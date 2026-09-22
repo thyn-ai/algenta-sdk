@@ -2,7 +2,7 @@
 
 # Algenta SDK
 
-**Python and TypeScript client libraries for [Algenta](https://algenta.ai) — self-hosted building blocks for AI applications.**
+**Python and TypeScript client libraries and the official MCP server for [Algenta](https://algenta.ai) — self-hosted building blocks for AI applications.**
 
 [![CI](https://github.com/thyn-ai/algenta-sdk/actions/workflows/ci.yml/badge.svg)](https://github.com/thyn-ai/algenta-sdk/actions/workflows/ci.yml)
 [![PyPI](https://img.shields.io/pypi/v/algenta-sdk?label=PyPI)](https://pypi.org/project/algenta-sdk/)
@@ -14,7 +14,7 @@
 
 📖 **Full documentation: [GitHub Wiki](https://github.com/thyn-ai/algenta-sdk/wiki)**
 
-[Docs](https://docs.algenta.ai) · [Python SDK](./packages/python-sdk) · [TypeScript SDK](./packages/ts-sdk) · [Integrations](https://github.com/thyn-ai/algenta-integrations) · [Examples](./examples) · [Contributing](./CONTRIBUTING.md)
+[Docs](https://docs.algenta.ai) · [Python SDK](./packages/python-sdk) · [TypeScript SDK](./packages/ts-sdk) · [MCP server](./packages/mcp) · [Integrations](https://github.com/thyn-ai/algenta-integrations) · [Examples](./examples) · [Contributing](./CONTRIBUTING.md)
 
 </div>
 
@@ -26,6 +26,18 @@ decision memory with execution receipts that pin the policy and schema
 snapshots each execution ran under, agent runs with human-in-the-loop
 approvals, managed connectors, and a full audit trail — enforced by the
 engine, never by client-side convention.
+
+## MCP server
+
+**MCP server (`algenta-mcp`)** — the official MCP server for Algenta lives in
+THIS repository at [`packages/mcp/`](./packages/mcp) (implementation:
+`packages/mcp/algenta_mcp`; stdio transport by default, Streamable HTTP
+optional). Install it with `pip install algenta-mcp` and run it as the
+`algenta-mcp` command; it is also on the official MCP Registry as
+`io.github.thyn-ai/algenta`. The framework integrations (LangChain, LlamaIndex,
+Vercel AI SDK, …) are what live in the companion repository
+[thyn-ai/algenta-integrations](https://github.com/thyn-ai/algenta-integrations)
+— not the MCP server.
 
 ## Installation
 
@@ -92,8 +104,9 @@ triggers, agent runs, decisions, repository intelligence, and the TypeScript
 local `Runtime` facade — is documented in
 [`packages/python-sdk/README.md`](./packages/python-sdk/README.md) and
 [`packages/ts-sdk/README.md`](./packages/ts-sdk/README.md), with runnable
-projects in [`examples/`](./examples). Framework integrations (LangChain,
-LlamaIndex, MCP, and more) live in the companion repository
+projects in [`examples/`](./examples). The MCP server lives in this repository
+(see [MCP server](#mcp-server) above); framework integrations (LangChain,
+LlamaIndex, Vercel AI SDK, and more) live in the companion repository
 [thyn-ai/algenta-integrations](https://github.com/thyn-ai/algenta-integrations).
 
 ## Errors, retries, and timeouts
@@ -155,7 +168,8 @@ a minimal end-to-end walkthrough of calling the native runtime through the SDK.
 
 ## What is open source?
 
-This repository contains Algenta's Python and TypeScript client SDKs, licensed
+This repository contains Algenta's Python and TypeScript client SDKs and the
+official MCP server ([`packages/mcp/`](./packages/mcp)), licensed
 under **Apache-2.0** (see [LICENSE](./LICENSE) and [NOTICE](./NOTICE)).
 
 **The Algenta engine itself is closed source and is not contained in this
@@ -272,7 +286,7 @@ not just code.
 
 Open-source tooling around Algenta, from the Algenta team. The Algenta engine itself is proprietary; everything listed here is Apache-2.0. Issues and discussions are welcome in whichever repository owns the code.
 
-- [thyn-ai/algenta-sdk](https://github.com/thyn-ai/algenta-sdk) (this repository) — Python and TypeScript SDKs for Algenta: governed data queries, simulations, decision memory with execution receipts, agent runs with approvals.
+- [thyn-ai/algenta-sdk](https://github.com/thyn-ai/algenta-sdk) (this repository) — Python and TypeScript SDKs for Algenta plus the official MCP server ([`packages/mcp/`](./packages/mcp)): governed data queries, simulations, decision memory with execution receipts, agent runs with approvals.
 - [thyn-ai/algenta-integrations](https://github.com/thyn-ai/algenta-integrations) — Framework integrations for Algenta: LangChain, LlamaIndex, pydantic-ai, MAF, Haystack, LiteLLM, Ray Serve, vLLM, Vercel AI SDK and n8n.
 - [thyn-ai/mojo-kernels](https://github.com/thyn-ai/mojo-kernels) — Clean-room Mojo kernels as drop-in accelerators for popular Python/TypeScript libraries, with bit-exact parity and pure-language fallbacks.
 - [thyn-ai/security-toolchain](https://github.com/thyn-ai/security-toolchain) — The pinned, checksum-verified security toolchain (Gitleaks, Opengrep, OSV-Scanner, Trivy config, actionlint) that every thyn-ai repository runs locally and in CI.
