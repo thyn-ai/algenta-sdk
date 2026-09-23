@@ -39,6 +39,11 @@ Vercel AI SDK, …) are what live in the companion repository
 [thyn-ai/algenta-integrations](https://github.com/thyn-ai/algenta-integrations)
 — not the MCP server.
 
+Introspection (`initialize`/`tools/list`) needs no credentials. Executing tools
+requires a free community login — device registration at algenta.ai (free): run
+`algenta login`, or create a key at
+https://app.algenta.ai/dashboard/api-keys, then set `ALGENTA_API_KEY`.
+
 ## Installation
 
 ```bash
