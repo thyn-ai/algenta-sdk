@@ -7,6 +7,8 @@ name = "algenta-sdk"
 version = "1.0.31"
 description = "Python SDK for Algenta — self-hosted building blocks for AI applications: governed data queries, simulations, decision memory, and agent runs with approvals"
 readme = "README.md"
+authors = [{ name = "Thyn" }]
+maintainers = [{ name = "Thyn" }]
 requires-python = ">=3.12"
 license = "Apache-2.0"
 license-files = ["LICENSE"]
@@ -36,6 +38,7 @@ Documentation = "https://docs.algenta.ai"
 Repository = "https://github.com/thyn-ai/algenta-sdk"
 "Bug Tracker" = "https://github.com/thyn-ai/algenta-sdk/issues"
 Changelog = "https://docs.algenta.ai/changelog"
+Company = "https://thyn.ai"
 
 [tool.setuptools.packages.find]
 where = ["."]
