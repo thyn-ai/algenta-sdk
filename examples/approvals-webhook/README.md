@@ -79,9 +79,8 @@ cd examples/approvals-webhook
 npm install
 ```
 
-The example imports `algenta-sdk` from the local `packages/ts-sdk/src`
-directory via a `tsconfig.json` path mapping, so no separate build step is
-needed.
+The example depends on the published `algenta-sdk` package, so no separate
+build step is needed.
 
 Start the receiver against a self-hosted engine:
 

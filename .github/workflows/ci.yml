@@ -125,8 +125,8 @@ jobs:
         run: .github/tsx-runner/node_modules/.bin/tsx --test examples/shared/*.test.ts
 
   # examples/approvals-webhook is a standalone TypeScript package with its own
-  # committed package-lock.json. It imports the TypeScript SDK source via a
-  # tsconfig.json path mapping, so no separate build step is required.
+  # committed package-lock.json. It depends on the published algenta-sdk package,
+  # so type-checking uses the SDK's built declarations rather than its source.
   examples-approvals-webhook:
     runs-on: ubuntu-latest
     steps:

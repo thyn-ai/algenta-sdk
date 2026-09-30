@@ -9,11 +9,7 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
-    "noEmit": true,
-    "baseUrl": ".",
-    "paths": {
-      "algenta-sdk": ["../../packages/ts-sdk/src/index.ts"]
-    }
+    "noEmit": true
   },
   "include": ["src/**/*.ts", "test/**/*.ts"]
 }
