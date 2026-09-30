@@ -1,0 +1,48 @@
+{
+  "run_id": "run_audit_1",
+  "status": "completed",
+  "task": "Summarise the changelog.",
+  "output_format": "text",
+  "approval_mode": "auto",
+  "pending_action": null,
+  "selected_tool": null,
+  "result": "Shipped the release notes.",
+  "tools_available": [],
+  "tools_used": ["fs.read"],
+  "steps": [
+    {
+      "step_number": 1,
+      "tool_name": "fs.read",
+      "action": "read_changelog",
+      "result": "ok",
+      "status": "completed",
+      "input": null,
+      "output": null,
+      "rationale": null
+    },
+    {
+      "step_number": 2,
+      "tool_name": null,
+      "action": "summarise",
+      "result": null,
+      "status": "completed",
+      "input": null,
+      "output": null,
+      "rationale": null
+    }
+  ],
+  "request_hash": "reqhash123",
+  "decision_hash": "dechash123",
+  "policy_snapshot_id": "pol_123",
+  "schema_snapshot_id": "sch_123",
+  "manifest_version": "1.0.0",
+  "replayable": true,
+  "artifact_refs": [],
+  "latest_checkpoint_id": "cp_2",
+  "checkpoint_count": 2,
+  "source_run_id": null,
+  "source_checkpoint_id": null,
+  "created_at": "2026-01-01T00:00:00Z",
+  "updated_at": "2026-01-01T00:00:01Z",
+  "latency_ms": 820.0
+}
