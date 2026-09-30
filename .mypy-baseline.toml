@@ -1,0 +1,7 @@
+[tool.mypy-baseline]
+# Baseline for the initial strict mypy run. Generated with:
+#   mypy --config-file mypy.ini --strict packages/python-sdk/decision_engine \
+#     | mypy-baseline sync --config .mypy-baseline.toml --preserve-position
+baseline_path = ".github/baselines/python-sdk-mypy.txt"
+preserve_position = true
+allow_unsynced = false
