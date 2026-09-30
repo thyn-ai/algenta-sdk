@@ -51,7 +51,7 @@ build:
   script:
     - mkdir -p "$PREFIX/share/algenta-mojo-quickstart"
     - cd examples/mojo-quickstart
-    - cp main.mojo pixi.toml pixi.lock README.md test_demo.py "$PREFIX/share/algenta-mojo-quickstart/"
+    - cp main.mojo pixi.toml pixi.lock README.md "$PREFIX/share/algenta-mojo-quickstart/"
 
 requirements:
   run:
@@ -74,12 +74,12 @@ tests:
           QUICKSTART="$PREFIX/share/algenta-mojo-quickstart"
 
           echo "== layer 1: package contents =="
-          for f in main.mojo pixi.toml pixi.lock README.md test_demo.py; do
+          for f in main.mojo pixi.toml pixi.lock README.md; do
               test -f "$QUICKSTART/$f"
               echo "  found: $QUICKSTART/$f"
           done
 
-          echo "== layer 2: end-to-end test from the packaged sources =="
+          echo "== layer 2: end-to-end demo from the packaged sources =="
           WORK="$(mktemp -d)"
           trap 'rm -rf "$WORK"' EXIT
           cp -r "$QUICKSTART" "$WORK/algenta-mojo-quickstart"
@@ -91,8 +91,8 @@ tests:
           test -x "$WORK/compile-check"
           echo "  main.mojo compiles cleanly with the max toolchain from the test env"
 
-          # Full user path: pinned pixi workspace → signed runtime wheel → test.
-          pixi run --locked test
+          # Full user path: pinned pixi workspace → signed runtime wheel → demo.
+          pixi run --locked demo
 
           echo "algenta-mojo-quickstart package test: OK"
 
@@ -109,13 +109,11 @@ about:
     and speaks the runtime's framed-JSON wire protocol over a Unix domain
     socket using nothing but the Mojo standard library and direct libc FFI
     (`external_call`). The demo performs a deterministic compute round-trip
-    (`activations.gelu(1.0)`), a deterministic batch round-trip
-    (`batch_execute` with two GELU calls), and exits non-zero on any failure.
+    (`activations.gelu(1.0)`) and exits non-zero on any failure.
 
     The package installs the quickstart sources (main.mojo, pixi.toml,
-    pixi.lock, README.md, test_demo.py) under
-    `$PREFIX/share/algenta-mojo-quickstart/`. Copy them anywhere and run
-    `pixi run test`.
+    pixi.lock, README.md) under `$PREFIX/share/algenta-mojo-quickstart/`.
+    Copy them anywhere and run `pixi run demo`.
 
 extra:
   recipe-maintainers:

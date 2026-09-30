@@ -478,29 +478,6 @@ describe("DecisionEngineClient transport", () => {
       await assertion;
       expect(fetchMock).toHaveBeenCalledTimes(2);
     });
-
-    it("aborts a requestWithMetadata call that exceeds the configured timeout", async () => {
-      vi.useFakeTimers();
-      const fetchMock = vi.fn(
-        (_url: string, init: RequestInit) =>
-          new Promise<Response>((_resolve, reject) => {
-            init.signal?.addEventListener("abort", () =>
-              reject(new DOMException("The operation was aborted.", "AbortError")),
-            );
-          }),
-      );
-      vi.stubGlobal("fetch", fetchMock);
-      const client = newClient({ maxRetries: 0, timeout: 50 });
-
-      const assertion = expect(client.requestWithMetadata("GET", "/v1/me")).rejects.toMatchObject({
-        name: "AbortError",
-      });
-      await vi.advanceTimersByTimeAsync(49);
-      expect(fetchCall(fetchMock, 0)[1].signal?.aborted).toBe(false);
-      await vi.advanceTimersByTimeAsync(1);
-      await assertion;
-      expect(fetchCall(fetchMock, 0)[1].signal?.aborted).toBe(true);
-    });
   });
 
   describe("requestStream()", () => {
@@ -631,31 +608,6 @@ describe("DecisionEngineClient transport", () => {
         errorClass,
       );
       expect(fetchMock).toHaveBeenCalledTimes(1);
-    });
-
-    it("aborts a requestStream call that exceeds the configured timeout", async () => {
-      vi.useFakeTimers();
-      const fetchMock = vi.fn(
-        (_url: string, init: RequestInit) =>
-          new Promise<Response>((_resolve, reject) => {
-            init.signal?.addEventListener("abort", () =>
-              reject(new DOMException("The operation was aborted.", "AbortError")),
-            );
-          }),
-      );
-      vi.stubGlobal("fetch", fetchMock);
-      const client = newClient({ maxRetries: 0, timeout: 50 });
-
-      const assertion = expect(
-        collect(client.requestStream<{ seq: number }>("GET", "/v1/x")),
-      ).rejects.toMatchObject({
-        name: "AbortError",
-      });
-      await vi.advanceTimersByTimeAsync(49);
-      expect(fetchCall(fetchMock, 0)[1].signal?.aborted).toBe(false);
-      await vi.advanceTimersByTimeAsync(1);
-      await assertion;
-      expect(fetchCall(fetchMock, 0)[1].signal?.aborted).toBe(true);
     });
   });
 

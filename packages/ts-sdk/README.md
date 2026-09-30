@@ -165,4 +165,3 @@ npm run lint:biome   # biome check .
 - [Simulations and queries](https://docs.algenta.ai/sdks/typescript/simulations-and-queries)
 - [Repository intelligence](https://docs.algenta.ai/sdks/typescript/repositories)
 - [Troubleshooting](https://docs.algenta.ai/help/troubleshooting)
-- [Error code reference](../../docs/errors.md)

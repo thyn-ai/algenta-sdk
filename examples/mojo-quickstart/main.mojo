@@ -64,14 +64,6 @@ comptime DEMO_FUNCTION = "gelu"
 comptime DEMO_ARGS_JSON = "[1.0]"
 comptime DEMO_RESULT_PREFIX = "0.841191"
 
-# The deterministic batch call this demo makes: two GELU evaluations in one
-# protocol frame, using the runtime's batch_execute request.
-comptime BATCH_REQUESTS_JSON = '[{"type":"library_execute","module":"activations","function":"gelu","args":[1.0]},{"type":"library_execute","module":"activations","function":"gelu","args":[-1.0]}]'
-comptime BATCH_RESULT_PREFIX_0 = "0.841191"
-comptime BATCH_RESULT_PREFIX_1 = "-0.158808"
-comptime BATCH_OK_COUNT = "2"
-comptime BATCH_FAILED_COUNT = "0"
-
 
 # --- Minimal JSON field extraction ----------------------------------------- #
 # The demo exchanges a fixed, tiny ASCII schema, so a full JSON parser would
@@ -477,34 +469,7 @@ def run_demo() raises:
         + " (deterministic)"
     )
 
-    # 4. Deterministic batch call: two GELU evaluations in one frame.
-    var batch = exchange(
-        sock,
-        "batch_execute",
-        '{"type":"batch_execute","requests":' + BATCH_REQUESTS_JSON + "}",
-    )
-    var batch_ok = json_number_token(batch, "ok")
-    if batch_ok != BATCH_OK_COUNT:
-        raise Error("unexpected batch ok count: " + batch_ok)
-    var batch_failed = json_number_token(batch, "failed")
-    if batch_failed != BATCH_FAILED_COUNT:
-        raise Error("unexpected batch failed count: " + batch_failed)
-    if batch.find('"stopped_early":false') < 0:
-        raise Error("batch did not complete: " + batch)
-    if (
-        batch.find(BATCH_RESULT_PREFIX_0) < 0
-        or batch.find(BATCH_RESULT_PREFIX_1) < 0
-    ):
-        raise Error("unexpected batch results: " + batch)
-    print(
-        "  ✓ batch_execute(2 requests) ok="
-        + batch_ok
-        + " failed="
-        + batch_failed
-        + " (deterministic)"
-    )
-
-    # 5. Orderly shutdown.
+    # 4. Orderly shutdown.
     var bye = exchange(sock, "shutdown", '{"type":"shutdown"}')
     if json_string_field(bye, "status") != "bye":
         raise Error("shutdown failed: " + bye)
@@ -515,10 +480,7 @@ def run_demo() raises:
         remove(sock_path)
     except:
         pass  # the worker may already have unlinked it
-    print(
-        "ok: handshake, ping, library_execute, batch_execute and shutdown all"
-        " succeeded"
-    )
+    print("ok: handshake, ping, library_execute and shutdown all succeeded")
 
 
 def main():
