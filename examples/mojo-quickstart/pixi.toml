@@ -5,6 +5,8 @@
 #   * the signed Algenta native runtime wheel, from PyPI
 #
 # `pixi run demo` compiles main.mojo and runs it against the bundled runtime.
+# `pixi run test` compiles and runs the demo, then validates its deterministic
+# expected output.
 # See README.md for the full walkthrough.
 
 [workspace]
@@ -41,5 +43,7 @@ algenta-runtime-native = ">=1.0.4"
 # Compile the demo once, then run the native binary.
 build = "mojo build -o algenta-mojo-demo main.mojo"
 demo = { cmd = "./algenta-mojo-demo", depends-on = ["build"] }
+# Compile the demo and verify its deterministic expected output.
+test = { cmd = "python test_demo.py", depends-on = ["build"] }
 # Fast inner loop while editing: compile + run in one step.
 dev = "mojo run main.mojo"

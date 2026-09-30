@@ -27,6 +27,9 @@ automatically. This example drives that artifact directly from Mojo.
    `activations.gelu(1.0)` (one of the runtime's published library functions)
    and the demo verifies the result before exiting `0`. Any failure prints an
    `error:` diagnostic and exits `1`.
+5. **A deterministic batch round-trip** — the worker evaluates two GELU calls
+   in a single `batch_execute` frame and the demo verifies both results, the
+   `ok`/`failed` counts, and `stopped_early:false`.
 
 ## Prerequisites
 
@@ -61,9 +64,12 @@ Algenta × Mojo quickstart
   > library_execute activations.gelu: {"type":"library_execute","module":"activations","function":"gelu","args":[1.0]}
   < {"result":0.841191990607477}
   ✓ activations.gelu(1.0) = 0.841191990607477 (deterministic)
+  > batch_execute: {"type":"batch_execute","requests":[{"type":"library_execute","module":"activations","function":"gelu","args":[1.0]},{"type":"library_execute","module":"activations","function":"gelu","args":[-1.0]}]}
+  < {"results":[{"result":0.841191990607477},{"result":-0.1588080093925231}],"count":2,"ok":2,"failed":0,"stopped_early":false}
+  ✓ batch_execute(2 requests) ok=2 failed=0 (deterministic)
   > shutdown: {"type":"shutdown"}
   < {"status":"bye"}
-ok: handshake, ping, library_execute and shutdown all succeeded
+ok: handshake, ping, library_execute, batch_execute and shutdown all succeeded
 ```
 
 Useful tasks:
@@ -71,6 +77,7 @@ Useful tasks:
 | Command          | What it does                                   |
 | ---------------- | ---------------------------------------------- |
 | `pixi run demo`  | build `main.mojo`, then run the demo (above)   |
+| `pixi run test`  | build and run the demo, then validate output   |
 | `pixi run build` | compile only, to `./algenta-mojo-demo`         |
 | `pixi run dev`   | compile + run in one step (`mojo run`)         |
 
@@ -100,6 +107,8 @@ handshake: worker sends {"status": "ready", ...}     (fields are additive)
 ping:      > {"type": "ping"}                        < {"status": "ok"}
 execute:   > {"type": "library_execute", "module": M, "function": F, "args": [...]}
            < {"result": ...}
+batch:     > {"type": "batch_execute", "requests": [...]}
+           < {"results": [...], "count": N, "ok": N, "failed": 0, "stopped_early": false}
 shutdown:  > {"type": "shutdown"}                    < {"status": "bye"}
 ```
 
@@ -124,7 +133,10 @@ examples/mojo-quickstart/
 ├── pixi.toml          # workspace: max (Mojo) + CPython 3.14 + the runtime wheel
 ├── pixi.lock          # pinned, reproducible resolution (commit it)
 ├── main.mojo          # the demo — read it top to bottom
-└── recipe/recipe.yaml # rattler-build recipe for the modular-community channel
+├── test_demo.py       # expected-output validator run by `pixi run test`
+└── recipe/            # rattler-build recipe + test for the modular-community channel
+    ├── recipe.yaml
+    └── test_quickstart.sh
 ```
 
 ## Learn more
