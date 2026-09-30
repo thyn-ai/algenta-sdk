@@ -1,0 +1,35 @@
+{
+  "name": "algenta.execute_decision",
+  "context": {
+    "trace_id": "0xfedcba0987654321fedcba0987654321",
+    "span_id": "0x1234567890abcdef",
+    "trace_state": "[]"
+  },
+  "kind": "SpanKind.CLIENT",
+  "parent_id": null,
+  "start_time": "2026-09-30T12:00:00.000000Z",
+  "end_time": "2026-09-30T12:00:00.001000Z",
+  "status": {
+    "status_code": "UNSET"
+  },
+  "attributes": {
+    "algenta.decision.id": "dec_123",
+    "algenta.execution.receipt_id": "dec_123",
+    "algenta.execution.status": "delivered",
+    "algenta.execution.policy_snapshot_id": "pol_123",
+    "algenta.execution.schema_snapshot_id": "sch_123",
+    "algenta.execution.manifest_version": "1.0.0",
+    "algenta.execution.safety_overridden": false
+  },
+  "events": [],
+  "links": [],
+  "resource": {
+    "attributes": {
+      "telemetry.sdk.language": "python",
+      "telemetry.sdk.name": "opentelemetry",
+      "telemetry.sdk.version": "1.35.0",
+      "service.name": "algenta-otel-example"
+    },
+    "schema_url": ""
+  }
+}
