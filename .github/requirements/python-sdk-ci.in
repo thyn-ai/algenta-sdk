@@ -27,6 +27,8 @@ pytest-cov
 respx
 black
 ruff
+mypy
+mypy-baseline
 
 # Property-based tests in packages/python-sdk/tests/test_properties.py. Not in
 # pyproject's dev extra because pyproject is sync-owned.

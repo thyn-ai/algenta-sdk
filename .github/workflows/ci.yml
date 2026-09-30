@@ -55,6 +55,14 @@ jobs:
       # never lower it.
       - run: pytest packages/python-sdk -v --cov=decision_engine --cov-report=xml --cov-fail-under=96
       - run: ruff check packages/python-sdk
+      # Strict mypy type-check for the Python SDK. The baseline captures the
+      # 1,036 pre-existing strict violations tracked in sdk#47; only *new*
+      # violations fail the lane. Regenerate the baseline when fixing existing
+      # errors: see .mypy-baseline.toml.
+      - run: |
+          mypy --config-file mypy.ini \
+            --strict packages/python-sdk/decision_engine \
+            | mypy-baseline filter --config .mypy-baseline.toml
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
         with:
