@@ -80,8 +80,8 @@ jobs:
           # locked defaults to true because pixi.lock is committed: CI fails
           # loudly if the manifest and lockfile ever drift apart.
 
-      - name: Run the Mojo quickstart demo
+      - name: Run the Mojo quickstart test
         if: steps.wheel.outputs.supported == 'true'
         working-directory: examples/mojo-quickstart
         shell: bash
-        run: pixi run --locked demo
+        run: pixi run --locked test
