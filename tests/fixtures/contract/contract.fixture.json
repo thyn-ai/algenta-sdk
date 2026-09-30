@@ -1,0 +1,537 @@
+{
+  "api_base_url": "https://api.algenta.ai",
+  "api_key_prefixes": {
+    "live": "de_live_",
+    "test": "de_test_"
+  },
+  "auth_scheme": "bearer_api_key",
+  "brand": "Algenta",
+  "capability_plane": null,
+  "compatibility": {
+    "deprecation_window_days": 90,
+    "legacy_domains": [
+      "api.algenta.io"
+    ],
+    "legacy_env_vars": [
+      "DE_API_KEY",
+      "DE_BASE_URL",
+      "ALGENTA_API_URL"
+    ],
+    "legacy_headers": [
+      "X-API-Key"
+    ]
+  },
+  "contract_version": "v1.5",
+  "defaults": {
+    "plan_limits": {
+      "algenta_free": {
+        "requests_per_minute": 0,
+        "simulations_per_month": 0
+      },
+      "algenta_pro": {
+        "requests_per_minute": 0,
+        "simulations_per_month": 0
+      },
+      "algenta_team": {
+        "requests_per_minute": 0,
+        "simulations_per_month": 0
+      },
+      "enterprise": {
+        "requests_per_minute": 0,
+        "simulations_per_month": 0
+      }
+    },
+    "read_only_default": true,
+    "write_confirmation_required": true
+  },
+  "integrations": [
+    {
+      "admin_controls": [
+        "tool_allowlist",
+        "read_only_mode",
+        "dataset_scope"
+      ],
+      "auth_scheme": "bearer_api_key",
+      "capabilities": [
+        "read",
+        "write"
+      ],
+      "description": "Hosted app and actions surface for Algenta discovery, exact query, simulation, persisted runtime follow-up, and control-plane review.",
+      "docs_url": "https://docs.algenta.ai/integrations/chatgpt-actions",
+      "icon": "chatgpt",
+      "name": "ChatGPT",
+      "privacy_url": "https://algenta.ai/privacy",
+      "read_only_default": true,
+      "regions": [
+        "global"
+      ],
+      "required_scopes": [
+        "read"
+      ],
+      "status": "active",
+      "support_url": "https://algenta.ai/support",
+      "terms_url": "https://algenta.ai/terms",
+      "write_actions": [
+        "connect_data",
+        "refresh_data",
+        "disconnect_data"
+      ]
+    },
+    {
+      "admin_controls": [
+        "tool_allowlist",
+        "read_only_mode",
+        "dataset_scope"
+      ],
+      "auth_scheme": "bearer_api_key",
+      "capabilities": [
+        "read",
+        "write"
+      ],
+      "description": "Remote MCP connection for Claude Desktop, Codex, and other MCP clients with governed data access, persisted runtime review, and control-plane tooling.",
+      "docs_url": "https://docs.algenta.ai/integrations/claude-codex",
+      "icon": "mcp",
+      "name": "Claude and Codex",
+      "privacy_url": "https://algenta.ai/privacy",
+      "read_only_default": true,
+      "regions": [
+        "global"
+      ],
+      "required_scopes": [
+        "read"
+      ],
+      "status": "active",
+      "support_url": "https://algenta.ai/support",
+      "terms_url": "https://algenta.ai/terms",
+      "write_actions": [
+        "connect_data",
+        "refresh_data",
+        "disconnect_data"
+      ]
+    },
+    {
+      "admin_controls": [
+        "read_only_mode",
+        "dataset_scope"
+      ],
+      "auth_scheme": "bearer_api_key",
+      "capabilities": [
+        "read",
+        "write"
+      ],
+      "description": "HTTP and MCP workflows for automation, governed discovery and query, simulation, and persisted runtime follow-up.",
+      "docs_url": "https://docs.algenta.ai/integrations/n8n",
+      "icon": "n8n",
+      "name": "n8n",
+      "privacy_url": "https://algenta.ai/privacy",
+      "read_only_default": true,
+      "regions": [
+        "global"
+      ],
+      "required_scopes": [
+        "read"
+      ],
+      "status": "active",
+      "support_url": "https://algenta.ai/support",
+      "terms_url": "https://algenta.ai/terms",
+      "write_actions": [
+        "connect_data",
+        "refresh_data"
+      ]
+    },
+    {
+      "admin_controls": [
+        "read_only_mode",
+        "tool_allowlist",
+        "dataset_scope"
+      ],
+      "auth_scheme": "bearer_api_key",
+      "capabilities": [
+        "read",
+        "write"
+      ],
+      "description": "OpenAPI and function-tool integration for Azure-hosted copilots and agents with governed discovery, exact query, SQL reports, and simulation.",
+      "docs_url": "https://docs.algenta.ai/integrations/azure-ai-studio",
+      "icon": "azure",
+      "name": "Azure AI Foundry",
+      "privacy_url": "https://algenta.ai/privacy",
+      "read_only_default": true,
+      "regions": [
+        "global"
+      ],
+      "required_scopes": [
+        "read"
+      ],
+      "status": "active",
+      "support_url": "https://algenta.ai/support",
+      "terms_url": "https://algenta.ai/terms",
+      "write_actions": [
+        "connect_data",
+        "refresh_data"
+      ]
+    },
+    {
+      "admin_controls": [
+        "tool_allowlist",
+        "read_only_mode",
+        "dataset_scope"
+      ],
+      "auth_scheme": "bearer_api_key",
+      "capabilities": [
+        "read",
+        "write"
+      ],
+      "description": "LangGraph tool-node integration for governed discovery, exact query, persisted runtime review, and simulation.",
+      "docs_url": "https://docs.algenta.ai/integrations/langgraph",
+      "icon": "langgraph",
+      "name": "LangGraph",
+      "privacy_url": "https://algenta.ai/privacy",
+      "read_only_default": true,
+      "regions": [
+        "global"
+      ],
+      "required_scopes": [
+        "read"
+      ],
+      "status": "active",
+      "support_url": "https://algenta.ai/support",
+      "terms_url": "https://algenta.ai/terms",
+      "write_actions": [
+        "connect_data",
+        "refresh_data",
+        "disconnect_data"
+      ]
+    },
+    {
+      "admin_controls": [
+        "read_only_mode"
+      ],
+      "auth_scheme": "bearer_api_key",
+      "capabilities": [
+        "read",
+        "write"
+      ],
+      "description": "Dual-mode local runtime for embedded execution, hosted local control-plane verification, and offline task history.",
+      "docs_url": "https://docs.algenta.ai/integrations/local-runtime",
+      "icon": "local-runtime",
+      "name": "Local Runtime",
+      "privacy_url": "https://algenta.ai/privacy",
+      "read_only_default": true,
+      "regions": [
+        "global"
+      ],
+      "required_scopes": [
+        "read"
+      ],
+      "status": "active",
+      "support_url": "https://algenta.ai/support",
+      "terms_url": "https://algenta.ai/terms",
+      "write_actions": [
+        "connect_data",
+        "disconnect_data"
+      ]
+    },
+    {
+      "admin_controls": [
+        "read_only_mode",
+        "dataset_scope"
+      ],
+      "auth_scheme": "bearer_api_key",
+      "capabilities": [
+        "read"
+      ],
+      "description": "Microsoft Power Automate custom connector for governed discovery, exact query, SQL reports, and simulation.",
+      "docs_url": "https://docs.algenta.ai/integrations/power-automate",
+      "icon": "power-automate",
+      "name": "Power Automate",
+      "privacy_url": "https://algenta.ai/privacy",
+      "read_only_default": true,
+      "regions": [
+        "global"
+      ],
+      "required_scopes": [
+        "read"
+      ],
+      "status": "active",
+      "support_url": "https://algenta.ai/support",
+      "terms_url": "https://algenta.ai/terms",
+      "write_actions": []
+    },
+    {
+      "admin_controls": [
+        "read_only_mode",
+        "dataset_scope"
+      ],
+      "auth_scheme": "bearer_api_key",
+      "capabilities": [
+        "read"
+      ],
+      "description": "Zapier webhook integration for governed discovery, exact query, simulation, and persisted runtime follow-up.",
+      "docs_url": "https://docs.algenta.ai/integrations/zapier",
+      "icon": "zapier",
+      "name": "Zapier",
+      "privacy_url": "https://algenta.ai/privacy",
+      "read_only_default": true,
+      "regions": [
+        "global"
+      ],
+      "required_scopes": [
+        "read"
+      ],
+      "status": "active",
+      "support_url": "https://algenta.ai/support",
+      "terms_url": "https://algenta.ai/terms",
+      "write_actions": []
+    },
+    {
+      "admin_controls": [
+        "read_only_mode",
+        "dataset_scope"
+      ],
+      "auth_scheme": "bearer_api_key",
+      "capabilities": [
+        "read"
+      ],
+      "description": "Make HTTP-module integration for governed discovery, exact query, simulation, and persisted runtime follow-up.",
+      "docs_url": "https://docs.algenta.ai/integrations/make",
+      "icon": "make",
+      "name": "Make",
+      "privacy_url": "https://algenta.ai/privacy",
+      "read_only_default": true,
+      "regions": [
+        "global"
+      ],
+      "required_scopes": [
+        "read"
+      ],
+      "status": "active",
+      "support_url": "https://algenta.ai/support",
+      "terms_url": "https://algenta.ai/terms",
+      "write_actions": []
+    }
+  ],
+  "mcp_endpoint": "https://api.algenta.ai/mcp",
+  "mcp_legacy_sse_endpoint": "https://api.algenta.ai/mcp/sse",
+  "mcp_protocol_version": "2025-11-25",
+  "mcp_tools_endpoint": "https://api.algenta.ai/mcp/tools",
+  "mcp_transport": "streamable_http",
+  "primary_data_query_contract": {
+    "api": {
+      "contract_endpoint": "/v1/meta/contract",
+      "discovery_endpoint": "/v1/data",
+      "query_batch_endpoint": "/v1/query/batch",
+      "query_endpoint": "/v1/query",
+      "query_sql_report_endpoint": "/v1/query/sql-report",
+      "resolve_endpoint": "/v1/resolve",
+      "summary_endpoint": "/v1/data/{dataset_id}/summary",
+      "verify_endpoint": "/v1/verify"
+    },
+    "cli": {
+      "contract_command": "de contract",
+      "discovery_command": "de data list --search <hint> --compact --limit <n>",
+      "query_batch_command": "de data query-batch <request.json>",
+      "query_sql_report_command": "de data sql-report <request.json>",
+      "runtime_execute_command": "de runtime execute <module> <function> --args-json '<json>'",
+      "runtime_functions_command": "de runtime functions <module>",
+      "runtime_modules_command": "de runtime modules",
+      "summary_command": "de data summary <dataset_id>"
+    },
+    "direct_sdk": {
+      "python": {
+        "compatibility_async_client_class": "AsyncDecisionEngineClient",
+        "compatibility_client_class": "DecisionEngineClient",
+        "contract_method": "get_contract",
+        "discovery_method": "list_datasets",
+        "import_root": "decision_engine",
+        "preferred_async_client_class": "AsyncAlgentaClient",
+        "preferred_client_class": "AlgentaClient",
+        "query_batch_method": "query_batch",
+        "query_sql_report_method": "query_sql_report",
+        "query_with_metadata_method": "query_with_metadata",
+        "summary_method": "get_dataset_summary"
+      },
+      "typescript": {
+        "compatibility_client_class": "DecisionEngineClient",
+        "contract_method": "getContract",
+        "discovery_method": "listDatasets",
+        "import_package": "algenta-sdk",
+        "preferred_client_class": "AlgentaClient",
+        "query_batch_method": "queryBatch",
+        "query_sql_report_method": "querySqlReport",
+        "query_with_metadata_method": "queryWithMetadata",
+        "summary_method": "getDatasetSummary"
+      }
+    },
+    "governed_filter_contract": {
+      "applies_before_aggregation": true,
+      "conditions_field": "conditions",
+      "kind": "record_predicates",
+      "notes": [
+        "Filters apply to normalized source rows before aggregation and grouping.",
+        "Boolean equality uses eq.",
+        "This contract is database-agnostic and valid for Redis and other non-SQL backends after record normalization.",
+        "Nested OR groups, regex, text search, and arbitrary expressions are not part of this contract."
+      ],
+      "operators": {
+        "list": [
+          "in"
+        ],
+        "nullary": [
+          "is_null",
+          "is_not_null"
+        ],
+        "scalar": [
+          "eq",
+          "gt",
+          "gte",
+          "lt",
+          "lte"
+        ]
+      },
+      "selector_fields": [
+        "column",
+        "dimension_hint"
+      ],
+      "supports_non_sql_backends": true,
+      "time_filter_field": "time_filter",
+      "type_behavior": {
+        "boolean": [
+          "eq"
+        ],
+        "null_checks": [
+          "is_null",
+          "is_not_null"
+        ],
+        "numeric": [
+          "eq",
+          "in",
+          "gt",
+          "gte",
+          "lt",
+          "lte"
+        ],
+        "string": [
+          "eq",
+          "in"
+        ]
+      },
+      "validation": {
+        "list_ops_require_non_empty_values": [
+          "in"
+        ],
+        "nullary_ops_forbid_value_and_values": [
+          "is_null",
+          "is_not_null"
+        ],
+        "requires_selector": true,
+        "scalar_ops_require_value": [
+          "eq",
+          "gt",
+          "gte",
+          "lt",
+          "lte"
+        ]
+      }
+    },
+    "mcp": {
+      "contract_tool": "get_contract",
+      "discovery_tool": "list_data",
+      "query_batch_tool": "query_batch",
+      "query_sql_report_tool": "query_sql_report",
+      "query_tool": "query_data",
+      "runtime_library_execute_tool": "execute_runtime_library",
+      "runtime_library_list_tool": "list_runtime_libraries",
+      "summary_tool": "get_data_summary"
+    },
+    "recommended_flows": {
+      "dataset_onboarding_tools": [
+        "connect_data \u2014 the normal path for live sources (database/API/object storage) or uploads; returns a reusable dataset_id and supports refresh_data.",
+        "onboard_dataset \u2014 inline columns/records/CSV for semantic querying with background model training (track model_tier with list_datasets); no live connection.",
+        "register_source \u2014 the advanced path: full column profiling, formula detection, and join-key detection across registered sources (browse with list_data).",
+        "list_data \u2014 browse datasets from the connect_data and register_source flows (connection_type, provider, refreshable).",
+        "list_datasets \u2014 browse semantically trained datasets with training status and model_tier."
+      ],
+      "decision_simulation_tools": [
+        "simulate \u2014 one scenario, full DecisionEnvelope (action, expected value, loss probability, percentiles); the run is recorded for list_runs.",
+        "plan_decision \u2014 same request as simulate but only the compact DecisionPlan summary; use when you do not need the full envelope.",
+        "score \u2014 one simulation plus a single weighted composite (expected_value/downside_risk weights) with score_breakdown; use to rank by one number.",
+        "compare \u2014 2-10 named scenarios side by side; the winner is the highest expected value, with per-scenario deltas.",
+        "recommend \u2014 2+ named actions ranked with a picked recommended_action, confidence, and rationale; use for 'which option should I pick'.",
+        "product_decision \u2014 plain business inputs (value with optional low/high) mapped for you; returns proceed/pause/reject with plain-English reasons; no simulation knowledge needed."
+      ],
+      "governed_query": [
+        "GET /v1/data?search=...&compact=1",
+        "GET /v1/data/{dataset_id}/summary",
+        "POST /v1/resolve",
+        "POST /v1/verify",
+        "POST /v1/query"
+      ],
+      "machine_readable_contract": [
+        "GET /v1/meta/contract"
+      ],
+      "multi_metric_query": [
+        "GET /v1/data?search=...&compact=1",
+        "GET /v1/data/{dataset_id}/summary",
+        "POST /v1/query/batch"
+      ],
+      "wide_sql_report": [
+        "GET /v1/data?search=...&compact=1",
+        "GET /v1/data/{dataset_id}/summary",
+        "POST /v1/query/sql-report"
+      ]
+    },
+    "runtime_sdk": {
+      "python": {
+        "contract_method": "get_contract",
+        "discovery_method": "list_datasets",
+        "import_root": "algenta",
+        "libraries_entrypoint": "libraries",
+        "query_batch_method": "query_batch",
+        "query_sql_report_method": "query_sql_report",
+        "query_with_metadata_method": "query_with_metadata",
+        "runtime_class": "Runtime",
+        "summary_method": "get_dataset_summary"
+      },
+      "typescript": {
+        "contract_method": "getContract",
+        "discovery_method": "listDatasets",
+        "import_package": "algenta-sdk",
+        "libraries_entrypoint": "libraries",
+        "query_batch_method": "queryBatch",
+        "query_sql_report_method": "querySqlReport",
+        "query_with_metadata_method": "queryWithMetadata",
+        "runtime_class": "Runtime",
+        "summary_method": "getDatasetSummary"
+      }
+    }
+  },
+  "privacy_registry": {
+    "algenta_owned_hosts": [
+      "algenta.ai",
+      "api.algenta.ai",
+      "docs.algenta.ai",
+      "app.algenta.ai",
+      "cdn.algenta.ai",
+      "api.algenta.io"
+    ],
+    "algenta_owned_suffixes": [
+      ".algenta.ai",
+      ".algenta.io"
+    ],
+    "private_host_suffixes": [
+      ".internal",
+      ".local",
+      ".localdomain",
+      ".lan",
+      ".corp",
+      ".home",
+      ".localhost",
+      ".home.arpa"
+    ],
+    "vendor_telemetry_hosts": [
+      "sentry.io",
+      "o443.ingest.sentry.io",
+      "api.stripe.com"
+    ]
+  }
+}

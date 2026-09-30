@@ -1,0 +1,16 @@
+{
+  "decision_id": "dec_123",
+  "executed_at": "2026-01-01T00:00:00Z",
+  "execution_status": "delivered",
+  "manifest_version": "1.0.0",
+  "payload_summary": {
+    "action": "ship_it",
+    "confidence": 0.82,
+    "expected_value": 128000.0
+  },
+  "policy_snapshot_id": "pol_123",
+  "response_code": 202,
+  "safety_overridden": false,
+  "schema_snapshot_id": "sch_123",
+  "webhook_url": "https://hooks.example.test/algenta"
+}
