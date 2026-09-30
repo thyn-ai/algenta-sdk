@@ -124,6 +124,29 @@ jobs:
       - name: Run shared example tests
         run: .github/tsx-runner/node_modules/.bin/tsx --test examples/shared/*.test.ts
 
+  # examples/approvals-webhook is a standalone TypeScript package with its own
+  # committed package-lock.json. It depends on the published algenta-sdk package,
+  # so type-checking uses the SDK's built declarations rather than its source.
+  examples-approvals-webhook:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "24"
+          package-manager-cache: false
+      - name: Install example dependencies (pinned lockfile)
+        working-directory: examples/approvals-webhook
+        run: npm ci --ignore-scripts
+      - name: Type-check the example
+        working-directory: examples/approvals-webhook
+        run: npm run lint
+      - name: Run example tests
+        working-directory: examples/approvals-webhook
+        run: npm test
+
   # Blocks a PR that hand-edits either generated contract snapshot, UNLESS
   # the PR was opened by the internal sync App that mirrors contract updates
   # from the Algenta engine (closed source). Gated on the authenticated actor
