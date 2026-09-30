@@ -536,3 +536,4 @@ hand-rolling ad hoc dictionaries.
 
 - [Algenta docs](https://docs.algenta.ai)
 - [Direct API client guide](https://docs.algenta.ai/direct-api-client)
+- [Error code reference](../../docs/errors.md)
