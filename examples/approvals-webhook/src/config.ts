@@ -12,7 +12,6 @@ const ALGENTA_OWNED_HOSTS = new Set([
   "docs.algenta.ai",
   "app.algenta.ai",
   "cdn.algenta.ai",
-  "api.algenta.io",
 ]);
 const ALGENTA_OWNED_SUFFIXES = [".algenta.ai", ".algenta.io"];
 const PRIVATE_DEPLOYMENT_MODES = new Set(["self_hosted", "air_gapped"]);
