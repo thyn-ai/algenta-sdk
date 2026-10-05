@@ -49,7 +49,7 @@ def create_fastapi_router() -> APIRouter | None:
     Called from apps/api_server/main.py to embed MCP into the main API process.
 
     Always exposes /mcp/tools when FastAPI dependencies are available.
-    The optional mcp package enables /mcp Streamable HTTP and legacy SSE routes.
+    The optional mcp package enables the /mcp Streamable HTTP route.
     Without it, those endpoints still mount but fail closed with a structured
     503 mcp_transport_unavailable contract.
     """

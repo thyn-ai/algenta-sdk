@@ -29,7 +29,6 @@ import {
   LEGACY_ENV_VARS,
   LEGACY_HEADERS,
   MCP_ENDPOINT,
-  MCP_LEGACY_SSE_ENDPOINT,
   MCP_PROTOCOL_VERSION,
   MCP_TRANSPORT,
   MCP_TOOLS_ENDPOINT,
@@ -192,7 +191,6 @@ export function makeContractPayload(overrides: Record<string, unknown> = {}): Re
     mcp_endpoint: MCP_ENDPOINT,
     mcp_transport: MCP_TRANSPORT,
     mcp_protocol_version: MCP_PROTOCOL_VERSION,
-    mcp_legacy_sse_endpoint: MCP_LEGACY_SSE_ENDPOINT,
     mcp_tools_endpoint: MCP_TOOLS_ENDPOINT,
     auth_scheme: AUTH_SCHEME,
     api_key_prefixes: {

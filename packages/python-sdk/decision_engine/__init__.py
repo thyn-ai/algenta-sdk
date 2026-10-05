@@ -562,7 +562,6 @@ _LAZY_EXPORTS = {
     "MCP_ENDPOINT": ("decision_engine._contract", "MCP_ENDPOINT"),
     "MCP_TRANSPORT": ("decision_engine._contract", "MCP_TRANSPORT"),
     "MCP_PROTOCOL_VERSION": ("decision_engine._contract", "MCP_PROTOCOL_VERSION"),
-    "MCP_LEGACY_SSE_ENDPOINT": ("decision_engine._contract", "MCP_LEGACY_SSE_ENDPOINT"),
     "MCP_TOOLS_ENDPOINT": ("decision_engine._contract", "MCP_TOOLS_ENDPOINT"),
     "AUTH_SCHEME": ("decision_engine._contract", "AUTH_SCHEME"),
     "API_KEY_PREFIX_LIVE": ("decision_engine._contract", "API_KEY_PREFIX_LIVE"),
