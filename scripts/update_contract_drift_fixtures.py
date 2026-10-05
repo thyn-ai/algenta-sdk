@@ -30,6 +30,7 @@ FIXTURES_DIR = REPO_ROOT / "tests" / "fixtures"
 # source tree to the path for the duration of generation.
 sys.path.insert(0, str(PYTHON_SDK_DIR))
 
+import decision_engine._contract as generated_contract  # noqa: E402
 from decision_engine._contract import (  # noqa: E402
     ALGENTA_OWNED_HOSTS,
     ALGENTA_OWNED_SUFFIXES,
@@ -44,10 +45,7 @@ from decision_engine._contract import (  # noqa: E402
     LEGACY_DOMAINS,
     LEGACY_ENV_VARS,
     LEGACY_HEADERS,
-    MCP_ENDPOINT,
-    MCP_LEGACY_SSE_ENDPOINT,
     MCP_PROTOCOL_VERSION,
-    MCP_TOOLS_ENDPOINT,
     MCP_TRANSPORT,
     PLAN_LIMITS,
     PRIMARY_DATA_QUERY_CONTRACT,
@@ -58,6 +56,22 @@ from decision_engine._contract import (  # noqa: E402
 )
 
 
+def _mcp_endpoint_fields() -> dict[str, str]:
+    """Return every ``mcp_*_endpoint`` contract field the shipped contract declares.
+
+    The generated contract module has one ``MCP_*_ENDPOINT`` constant per MCP endpoint
+    field of ``/v1/meta/contract`` (``MCP_TOOLS_ENDPOINT`` is ``mcp_tools_endpoint``).
+    Deriving the set instead of naming each endpoint keeps the fixture in step when the
+    engine adds or retires one; the drift lane then validates the result against the
+    SDK models, which reject unknown fields and require every declared one.
+    """
+    return {
+        name.lower(): url
+        for name, url in vars(generated_contract).items()
+        if name.startswith("MCP_") and name.endswith("_ENDPOINT")
+    }
+
+
 def make_contract_fixture() -> dict[str, object]:
     """Return a recorded ``/v1/meta/contract`` response body."""
     base_url = DEFAULT_BASE_URL
@@ -65,11 +79,9 @@ def make_contract_fixture() -> dict[str, object]:
         "contract_version": CONTRACT_VERSION,
         "brand": BRAND,
         "api_base_url": base_url,
-        "mcp_endpoint": MCP_ENDPOINT,
+        **_mcp_endpoint_fields(),
         "mcp_transport": MCP_TRANSPORT,
         "mcp_protocol_version": MCP_PROTOCOL_VERSION,
-        "mcp_legacy_sse_endpoint": MCP_LEGACY_SSE_ENDPOINT,
-        "mcp_tools_endpoint": MCP_TOOLS_ENDPOINT,
         "auth_scheme": AUTH_SCHEME,
         "api_key_prefixes": {
             "live": API_KEY_PREFIX_LIVE,
