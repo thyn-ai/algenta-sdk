@@ -24,7 +24,6 @@ from ._contract import (
     LEGACY_ENV_VARS,
     LEGACY_HEADERS,
     MCP_ENDPOINT,
-    MCP_LEGACY_SSE_ENDPOINT,
     MCP_PROTOCOL_VERSION,
     MCP_TOOLS_ENDPOINT,
     MCP_TRANSPORT,
@@ -135,7 +134,6 @@ def _build_contract_payload(api_base_url: str, openapi_payload: Any) -> dict[str
         "mcp_endpoint": _rebase_endpoint(api_base_url, MCP_ENDPOINT),
         "mcp_transport": MCP_TRANSPORT,
         "mcp_protocol_version": MCP_PROTOCOL_VERSION,
-        "mcp_legacy_sse_endpoint": _rebase_endpoint(api_base_url, MCP_LEGACY_SSE_ENDPOINT),
         "mcp_tools_endpoint": _rebase_endpoint(api_base_url, MCP_TOOLS_ENDPOINT),
         "auth_scheme": AUTH_SCHEME,
         "api_key_prefixes": {

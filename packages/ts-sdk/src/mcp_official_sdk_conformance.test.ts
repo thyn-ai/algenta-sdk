@@ -7,11 +7,10 @@
 // in-process way to embed it under Node. So this suite spawns the real server as a
 // subprocess -- the engine's live-server fixture, which boots the real HTTP stack with a
 // seeded owner org and API key -- and drives it exclusively over a real loopback socket
-// with the official TS client's StreamableHTTPClientTransport / SSEClientTransport.
+// with the official TS client's StreamableHTTPClientTransport.
 //
 // Behavioral matrix (mirrors the Python SDK's conformance suite):
 //   - modern discover/list/call over Streamable HTTP, with discovery public and tools/call gated
-//   - the legacy (deprecated) HTTP+SSE initialize handshake still works end to end
 //   - product-edition tool-profile filtering (X-Algenta-Product), enforced on both list AND call
 //   - a downstream auth failure surfaces as a normal (isError-false) tool result, never a raised
 //     transport error -- here, a *present but invalid* bearer clears the ASGI-layer auth
@@ -34,7 +33,6 @@ import { createInterface } from "node:readline";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
-import { SSEClientTransport } from "@modelcontextprotocol/sdk/client/sse.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 
 // This suite runs only inside the Algenta engine development environment, which provides
@@ -196,18 +194,6 @@ async function connectStreamable(
   return client;
 }
 
-async function connectLegacySse(
-  baseUrl: string,
-  headers: Record<string, string> = {},
-): Promise<Client> {
-  const transport = new SSEClientTransport(new URL("/mcp/sse", baseUrl), {
-    requestInit: { headers },
-  });
-  const client = new Client(CLIENT_INFO, { capabilities: {} });
-  await client.connect(transport);
-  return client;
-}
-
 describe.skipIf(!HAS_ENGINE_DEV_ENVIRONMENT)(
   "official @modelcontextprotocol/sdk TypeScript client vs. Algenta's real MCP server",
   () => {
@@ -337,38 +323,6 @@ describe.skipIf(!HAS_ENGINE_DEV_ENVIRONMENT)(
       } finally {
         await client.close();
       }
-    },
-    30_000,
-  );
-
-  it(
-    "legacy (deprecated) HTTP+SSE transport still completes initialize/list/call with a real bearer",
-    async () => {
-      const client = await connectLegacySse(server.baseUrl, {
-        Authorization: `Bearer ${server.ownerKey}`,
-      });
-      try {
-        expect(client.getServerVersion()?.name).toBe("algenta-mcp");
-        const { tools } = await client.listTools();
-        expect(tools.some(tool => tool.name === "list_decisions")).toBe(true);
-
-        const result = await client.callTool({ name: "list_decisions", arguments: {} });
-        expect(result.isError).toBeFalsy();
-        expect(firstTextContent(result)).toContain('"decisions"');
-      } finally {
-        await client.close();
-      }
-    },
-    30_000,
-  );
-
-  it(
-    "legacy transport requires auth on EVERY method (unlike the modern mount's open discovery)",
-    async () => {
-      const transport = new SSEClientTransport(new URL("/mcp/sse", server.baseUrl)); // no headers
-      const client = new Client(CLIENT_INFO, { capabilities: {} });
-      await expect(client.connect(transport)).rejects.toMatchObject({ code: 401 });
-      await client.close().catch(() => undefined);
     },
     30_000,
   );
