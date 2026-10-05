@@ -7,6 +7,7 @@ import respx
 from httpx import Response
 
 from decision_engine import AlgentaClient
+from decision_engine._contract import CONTRACT_VERSION
 from decision_engine.exceptions import (
     AuthenticationError,
     DecisionEngineError,
@@ -30,7 +31,7 @@ def test_get_contract_uses_the_primary_endpoint(
 
     contract = client.get_contract()
 
-    assert contract.contract_version == "v1.5"
+    assert contract.contract_version == CONTRACT_VERSION
     assert contract.brand == "Algenta"
     assert contract.api_base_url == TEST_BASE_URL
     assert contract.mcp_endpoint == f"{TEST_BASE_URL}/mcp"

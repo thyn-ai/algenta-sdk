@@ -191,26 +191,46 @@ def make_decision_log_payload(**overrides: Any) -> dict[str, Any]:
     return payload
 
 
+def _generated_mcp_endpoint_fields(normalized_base_url: str) -> dict[str, str]:
+    """Every ``mcp_*_endpoint`` contract field, rebased onto ``normalized_base_url``.
+
+    The SDK's generated contract module ships one ``MCP_*_ENDPOINT`` constant
+    per MCP endpoint field of ``/v1/meta/contract`` (``MCP_TOOLS_ENDPOINT`` is
+    ``mcp_tools_endpoint``). Deriving the set instead of naming each endpoint
+    keeps this payload in step with ``PlatformContractResult`` when the engine
+    adds or retires one. A constant outside that scheme cannot pass silently:
+    the model rejects unknown fields and requires every field it declares.
+    """
+    from decision_engine import _contract
+
+    fields: dict[str, str] = {}
+    for name, url in vars(_contract).items():
+        if not (name.startswith("MCP_") and name.endswith("_ENDPOINT")):
+            continue
+        if not url.startswith(_contract.DEFAULT_BASE_URL):
+            raise ValueError(f"{name} is not under DEFAULT_BASE_URL: {url!r}")
+        fields[name.lower()] = normalized_base_url + url.removeprefix(_contract.DEFAULT_BASE_URL)
+    return fields
+
+
 def make_platform_contract_payload(base_url: str) -> dict[str, Any]:
     """A complete, valid ``/v1/meta/contract`` response body.
 
-    Mirrors what the Algenta API returns: the nested
-    ``primary_data_query_contract`` section ships verbatim in the SDK's
-    generated contract module, so the fixture reuses that constant rather
-    than restating it.
+    Mirrors what the Algenta API returns: the contract version, the MCP
+    endpoint set and the nested ``primary_data_query_contract`` section ship
+    in the SDK's generated contract module, so the fixture reuses those
+    constants rather than restating them.
     """
-    from decision_engine._contract import PRIMARY_DATA_QUERY_CONTRACT
+    from decision_engine._contract import CONTRACT_VERSION, PRIMARY_DATA_QUERY_CONTRACT
 
     normalized = base_url.rstrip("/")
     return {
-        "contract_version": "v1.5",
+        "contract_version": CONTRACT_VERSION,
         "brand": "Algenta",
         "api_base_url": normalized,
-        "mcp_endpoint": f"{normalized}/mcp",
+        **_generated_mcp_endpoint_fields(normalized),
         "mcp_transport": "streamable_http",
         "mcp_protocol_version": "2025-11-25",
-        "mcp_legacy_sse_endpoint": f"{normalized}/mcp/sse",
-        "mcp_tools_endpoint": f"{normalized}/mcp/tools",
         "auth_scheme": "bearer_api_key",
         "api_key_prefixes": {"live": "de_live_", "test": "de_test_"},
         "compatibility": {

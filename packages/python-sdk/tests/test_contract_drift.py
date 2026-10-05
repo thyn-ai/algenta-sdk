@@ -11,6 +11,8 @@ output, the lane fails until the fixture is regenerated with
 from __future__ import annotations
 
 import json
+from collections.abc import Callable
+from functools import partial
 from pathlib import Path
 from typing import Any
 
@@ -28,9 +30,25 @@ REPO_ROOT = Path(__file__).resolve().parents[3]
 FIXTURES_DIR = REPO_ROOT / "tests" / "fixtures"
 
 
+# Fields the engine has retired from ``/v1/meta/contract``. The TypeScript drift lane,
+# mirrored from the engine and not edited here, parses the same recorded fixture and
+# requires every field its SDK still declares, so the fixture keeps a retired field until
+# the SDK that drops it has been mirrored, and is regenerated after that. Until then this
+# lane drops such a field, and only once ``PlatformContractResult`` no longer declares it;
+# any other undeclared key still fails validation, because the model forbids extra fields.
+_RETIRED_CONTRACT_FIELDS = frozenset({"mcp_legacy_sse_endpoint"})
+
+
 def _load_json_fixture(name: str) -> dict[str, Any]:
     path = FIXTURES_DIR / name / f"{name}.fixture.json"
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+def _load_contract_fixture() -> dict[str, Any]:
+    """The recorded contract payload as served to the installed SDK's contract version."""
+    raw = _load_json_fixture("contract")
+    retired_here = _RETIRED_CONTRACT_FIELDS - PlatformContractResult.model_fields.keys()
+    return {key: value for key, value in raw.items() if key not in retired_here}
 
 
 def _canonical_json(value: Any) -> str:
@@ -51,15 +69,17 @@ def _round_trip_matches(raw: dict[str, Any], parsed: _ModelT) -> None:
 
 
 @pytest.mark.parametrize(
-    ("payload_type", "model_class"),
+    ("load_fixture", "model_class"),
     [
-        ("contract", PlatformContractResult),
-        ("receipt", ExecutionReceiptResult),
+        pytest.param(_load_contract_fixture, PlatformContractResult, id="contract"),
+        pytest.param(partial(_load_json_fixture, "receipt"), ExecutionReceiptResult, id="receipt"),
     ],
 )
-def test_fixture_parses_directly(payload_type: str, model_class: type[Any]) -> None:
+def test_fixture_parses_directly(
+    load_fixture: Callable[[], dict[str, Any]], model_class: type[Any]
+) -> None:
     """Each recorded fixture validates through its SDK model and round-trips."""
-    raw = _load_json_fixture(payload_type)
+    raw = load_fixture()
     parsed = model_class.model_validate(raw)
     _round_trip_matches(raw, parsed)
 
@@ -69,7 +89,7 @@ def test_contract_fixture_parses_through_client(
     mock_router: respx.Router,
 ) -> None:
     """The recorded contract payload survives parsing in the real client path."""
-    raw = _load_json_fixture("contract")
+    raw = _load_contract_fixture()
     mock_router.get(f"{TEST_BASE_URL}/v1/meta/contract").mock(return_value=Response(200, json=raw))
 
     parsed = client.get_contract()
