@@ -28,14 +28,16 @@ runtime execution and offline task history.
 Published package install:
 
 ```bash
-pip install "algenta[cloud]"
+pip install algenta
 ```
 
-`algenta` alone is the pure local runtime package and intentionally fails
-closed for `Runtime(mode="api")` if `algenta-sdk` is missing. For local
-artifact validation before publish, install the local `algenta-sdk` and
-`algenta` artifacts together instead of relying on the `[cloud]` extra to
-resolve an unpublished SDK.
+`algenta` installs `algenta-sdk` as a dependency, so `Runtime(mode="api")`
+needs no extra. If `algenta-sdk` is missing anyway (a broken environment), it
+fails closed and asks you to reinstall `algenta`. For local artifact
+validation before publish, install the local `algenta-sdk` and `algenta`
+artifacts together so the SDK dependency resolves from the local wheel. Local
+execution needs the native runtime, which ships for CPython 3.14 on Linux
+x86-64 (glibc 2.35+).
 
 ### First proof
 
