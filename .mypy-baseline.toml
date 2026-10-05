@@ -1,7 +1,9 @@
 [tool.mypy-baseline]
 # Baseline for the initial strict mypy run. Generated with:
 #   mypy --config-file mypy.ini --strict packages/python-sdk/decision_engine \
-#     | mypy-baseline sync --config .mypy-baseline.toml --preserve-position
+#     | mypy-baseline sync --config .mypy-baseline.toml
+# Positions are NOT preserved: packages/ is synced from thyn-ai/algenta, so any upstream edit moves
+# line numbers; matching on file + error text keeps the ratchet about real new violations only.
 baseline_path = ".github/baselines/python-sdk-mypy.txt"
-preserve_position = true
+preserve_position = false
 allow_unsynced = false
