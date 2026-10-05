@@ -7,8 +7,11 @@ direct C FFI.
 The Algenta engine (closed source) compiles its numeric kernels with Mojo and
 ships them inside the signed
 [`algenta-runtime-native`](https://pypi.org/project/algenta-runtime-native/)
-wheel on PyPI — the same artifact `pip install algenta` resolves
-automatically. This example drives that artifact directly from Mojo.
+wheel on PyPI. On CPython 3.14 on Linux x86-64 it is the same package
+`pip install algenta` resolves automatically; on macOS `pip install algenta`
+installs no runtime. This example's lock pins older runtime releases: 1.0.4
+on macOS (a release that still published a macOS wheel) and 1.0.5 on Linux.
+This example drives that artifact directly from Mojo.
 
 ## What it demonstrates
 
