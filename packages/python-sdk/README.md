@@ -21,7 +21,7 @@ The PyPI package is `algenta-sdk`; the importable module is `decision_engine`.
 ```python
 from decision_engine import AlgentaClient
 
-client = AlgentaClient()  # reads ALGENTA_API_KEY; defaults to https://api.algenta.ai
+client = AlgentaClient()  # reads ALGENTA_API_KEY and ALGENTA_BASE_URL (your Algenta server)
 
 datasets = client.list_datasets(search="orders", compact=True)
 summary = client.get_dataset_summary(datasets.datasets[0].dataset_id)
@@ -35,10 +35,11 @@ result = client.query_with_metadata(
 print(result.data.result)
 ```
 
-Self-hosted engine? Pass `base_url="http://localhost:8000"` and the API key
-provisioned by your operator deployment. The `self_hosted` and `air_gapped`
-deployment profiles fail closed and never silently fall back to Algenta's
-cloud.
+Set `ALGENTA_BASE_URL` (or pass `base_url="http://localhost:8000"`) to your
+Algenta server and use the API key provisioned by that server. The
+`self_hosted` and `air_gapped` deployment profiles fail closed when no server
+URL is configured and never silently fall back to the built-in
+`DEFAULT_BASE_URL`.
 
 ## Root Contract Exports
 
@@ -83,7 +84,7 @@ mcp_providers = client.list_mcp_providers()
 The direct client now exposes a single customer-agnostic capability plane over
 data connectors, MCP providers, skills, native tools, and runtime libraries.
 Execution ownership remains authoritative: `algenta_managed` capabilities must
-execute through the Algenta service, while local runtime adapters only execute
+execute through your Algenta server, while local runtime adapters only execute
 `client_managed` capabilities and fail closed otherwise.
 Checked-in request artifacts and runnable examples live in
 `examples/capability-plane/` and `examples/langgraph/capability_router.py`.
@@ -101,7 +102,7 @@ if not api_key:
 
 client = AlgentaClient(
     api_key=api_key,
-    base_url="https://api.algenta.ai",
+    base_url="http://localhost:8000",  # your Algenta server
 )
 
 datasets = client.list_datasets(search="orders", compact=True)
@@ -204,10 +205,9 @@ client.delete_connector(connector.id)
 
 `query()` remains available and unchanged when you only need the response body.
 
-Use `https://api.algenta.ai` only in Cloud Managed. `ALGENTA_DEPLOYMENT_MODE=self_hosted`
-and `ALGENTA_DEPLOYMENT_MODE=air_gapped` must point `base_url` at your own
-self-hosted service and fail closed instead of silently falling back to
-Algenta cloud.
+`ALGENTA_DEPLOYMENT_MODE=self_hosted` and `ALGENTA_DEPLOYMENT_MODE=air_gapped`
+must point `base_url` at your own Algenta server and
+fail closed instead of silently falling back to the built-in `DEFAULT_BASE_URL`.
 
 `client.get_contract()` also handles older self-hosted nodes that still return
 `404` for `/v1/meta/contract` by falling back to `/openapi.json` and reading

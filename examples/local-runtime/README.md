@@ -35,9 +35,10 @@ pip install algenta
 needs no extra. If `algenta-sdk` is missing anyway (a broken environment), it
 fails closed and asks you to reinstall `algenta`. For local artifact
 validation before publish, install the local `algenta-sdk` and `algenta`
-artifacts together so the SDK dependency resolves from the local wheel. Local
-execution needs the native runtime, which ships for CPython 3.14 on Linux
-x86-64 (glibc 2.35+).
+artifacts together so the SDK dependency resolves from the local wheel. The
+same install brings the native runtime for local execution on macOS 13+ (Apple
+silicon) and on Linux x86-64 or arm64 with glibc 2.34+; other platforms fail at
+install time.
 
 ### First proof
 
