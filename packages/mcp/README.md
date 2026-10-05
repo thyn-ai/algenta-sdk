@@ -23,19 +23,19 @@ users do not install or manage a separate protocol package.
 
 ## Auth model
 
-Introspection (`initialize`/`tools/list`) needs no credentials. Executing tools requires a free
-community login — device registration at algenta.ai (free): run `algenta login`, or create a key
-at https://app.algenta.ai/dashboard/api-keys, then set `ALGENTA_API_KEY`.
+Introspection (`initialize`/`tools/list`) needs no credentials. Executing tools needs an API key
+issued by your Algenta server: set `ALGENTA_API_KEY` to it. The free community license also needs a
+one-time device registration: run `algenta login`.
 
 ## Configure
 
 ```bash
 export ALGENTA_API_KEY="<YOUR_ALGENTA_API_KEY>"
-export ALGENTA_BASE_URL="https://api.algenta.ai"
+export ALGENTA_BASE_URL="http://localhost:8000"
 ```
 
-Use your deployment URL for self-hosted Algenta. Private deployment profiles fail closed rather
-than silently sending traffic to Algenta Cloud.
+Set `ALGENTA_BASE_URL` to your Algenta server's URL. Private deployment profiles fail closed
+rather than silently sending traffic to the built-in default URL.
 
 ## Cursor and Claude Desktop
 
@@ -49,7 +49,7 @@ Desktop's MCP configuration:
       "command": "algenta-mcp",
       "env": {
         "ALGENTA_API_KEY": "<YOUR_ALGENTA_API_KEY>",
-        "ALGENTA_BASE_URL": "https://api.algenta.ai"
+        "ALGENTA_BASE_URL": "http://localhost:8000"
       }
     }
   }
@@ -68,7 +68,7 @@ command = "algenta-mcp"
 
 [mcp_servers.algenta.env]
 ALGENTA_API_KEY = "<YOUR_ALGENTA_API_KEY>"
-ALGENTA_BASE_URL = "https://api.algenta.ai"
+ALGENTA_BASE_URL = "http://localhost:8000"
 ```
 
 Keep credentials in user-level configuration or environment variables, not in a repository.
@@ -94,7 +94,7 @@ The endpoint uses stateless Streamable HTTP. It dual-serves both protocol eras f
 endpoint: a legacy `initialize` handshake negotiates `2025-11-25`, and a modern per-request caller
 (the `MCP-Protocol-Version` header plus the `2026-07-28` `_meta` envelope, no handshake) gets
 `2026-07-28`, including the built-in `server/discover` method. Algenta pins the official Python MCP
-SDK `2.0.0`. Deprecated `/mcp/sse` and `/mcp/messages` routes remain for older clients but are not
+SDK. Deprecated `/mcp/sse` and `/mcp/messages` routes remain for older clients but are not
 the default.
 
 LangChain example:
@@ -147,7 +147,8 @@ querying a dataset. Tool names, descriptions, and input schemas are returned by 
 - Streamable HTTP validates `Host` and `Origin` to prevent DNS-rebinding access.
 - Standalone HTTP binds to loopback unless `ALGENTA_MCP_HOST` is explicitly changed.
 - Error payloads redact API-key material.
-- `ALGENTA_BASE_URL` is required when cloud access is disabled.
+- Set `ALGENTA_BASE_URL` to your Algenta server; private deployment profiles
+  (`ALGENTA_DEPLOYMENT_MODE=self_hosted` or `air_gapped`) fail closed without it.
 - Put an authenticating gateway in front of a publicly reachable standalone MCP port.
 
 ## Compatibility
