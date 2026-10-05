@@ -34,7 +34,7 @@ from __future__ import annotations
 
 from importlib import import_module
 
-__version__ = "1.0.36"
+__version__ = "1.0.37"
 
 _LAZY_EXPORTS = {
     "AlgentaClient": ("decision_engine.client_facade", "AlgentaClient"),
@@ -562,7 +562,6 @@ _LAZY_EXPORTS = {
     "MCP_ENDPOINT": ("decision_engine._contract", "MCP_ENDPOINT"),
     "MCP_TRANSPORT": ("decision_engine._contract", "MCP_TRANSPORT"),
     "MCP_PROTOCOL_VERSION": ("decision_engine._contract", "MCP_PROTOCOL_VERSION"),
-    "MCP_LEGACY_SSE_ENDPOINT": ("decision_engine._contract", "MCP_LEGACY_SSE_ENDPOINT"),
     "MCP_TOOLS_ENDPOINT": ("decision_engine._contract", "MCP_TOOLS_ENDPOINT"),
     "AUTH_SCHEME": ("decision_engine._contract", "AUTH_SCHEME"),
     "API_KEY_PREFIX_LIVE": ("decision_engine._contract", "API_KEY_PREFIX_LIVE"),

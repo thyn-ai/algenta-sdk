@@ -471,7 +471,6 @@ describe("buildPlatformContractFromOpenApi", () => {
     );
     expect(contract.api_base_url).toBe("https://engine.customer.internal");
     expect(contract.mcp_endpoint).toBe("https://engine.customer.internal/mcp");
-    expect(contract.mcp_legacy_sse_endpoint).toBe("https://engine.customer.internal/mcp/sse");
     expect(contract.mcp_tools_endpoint).toBe("https://engine.customer.internal/mcp/tools");
     expect(contract.contract_version).toBe(CONTRACT_VERSION);
     expect(contract.capability_plane).toBeNull();

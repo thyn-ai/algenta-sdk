@@ -94,8 +94,7 @@ The endpoint uses stateless Streamable HTTP. It dual-serves both protocol eras f
 endpoint: a legacy `initialize` handshake negotiates `2025-11-25`, and a modern per-request caller
 (the `MCP-Protocol-Version` header plus the `2026-07-28` `_meta` envelope, no handshake) gets
 `2026-07-28`, including the built-in `server/discover` method. Algenta pins the official Python MCP
-SDK. Deprecated `/mcp/sse` and `/mcp/messages` routes remain for older clients but are not
-the default.
+SDK. The older HTTP+SSE transport (`/mcp/sse`, `/mcp/messages`) is not served.
 
 LangChain example:
 

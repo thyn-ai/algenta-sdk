@@ -1,16 +1,9 @@
 """
 HTTP transport for OpenWebUI, LibreChat, Continue, Cline HTTP, n8n, and custom apps.
 
-Canonical standalone endpoints:
+Standalone endpoints:
   GET  /mcp/tools     — tool listing (human-readable)
   *    /mcp           — Streamable HTTP (GET, POST, DELETE)
-
-Deprecated HTTP+SSE endpoints remain available for backward compatibility:
-  GET  /mcp/sse
-  POST /mcp/messages
-  GET  /tools
-  GET  /sse
-  POST /messages
 
 Also exports _build_fastapi_router() for embedding in the main FastAPI app.
 """
@@ -47,16 +40,6 @@ class _StreamableHTTPASGIApp:
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         await self._session_manager.handle_request(scope, receive, send)
-
-
-class _CallableASGIApp:
-    """Keep raw ASGI callables from being coerced into request handlers by Starlette."""
-
-    def __init__(self, app: ASGIApp) -> None:
-        self._app = app
-
-    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
-        await self._app(scope, receive, send)
 
 
 class _MCPToolCallAuthChallengeASGIApp:
@@ -120,44 +103,6 @@ class _MCPToolCallAuthChallengeASGIApp:
             return await receive()
 
         await self._app(scope, replay_receive, send)
-
-
-class _MCPLegacyTransportAuthASGIApp:
-    """Require a caller credential on the DEPRECATED HTTP+SSE lane, for every method.
-
-    The streamable ``/mcp`` mount challenges only ``tools/call`` so that discovery (``initialize``,
-    ``tools/list``) stays open the way MCP clients expect. The legacy pair could not reuse that: a
-    ``tools/call`` arrives as ``POST /mcp/messages?session_id=...`` whose body the SSE transport owns,
-    so the same body-sniffing challenge does not see it — an unauthenticated ``GET /mcp/sse`` handed
-    out a session id and the paired POST then executed tools with whatever credential the SERVER
-    process happened to have. Nothing in the tree connects to this lane (it is OpenAPI-deprecated and
-    every client uses streamable ``/mcp``), so requiring a key outright costs no consumer and removes
-    the asymmetry instead of trying to reproduce the challenge over a transport that hides the body.
-
-    Discovery is unaffected: ``GET /mcp/tools`` and streamable ``tools/list`` remain public.
-    """
-
-    def __init__(self, app: ASGIApp) -> None:
-        self._app = app
-
-    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
-        if scope.get("type") != "http" or _scope_api_key(scope):
-            await self._app(scope, receive, send)
-            return
-        response = JSONResponse(
-            status_code=401,
-            headers={"WWW-Authenticate": 'Bearer realm="algenta", error="invalid_token"'},
-            content={
-                "error": {
-                    "code": "authentication_required",
-                    "message": (
-                        "Authentication required: the deprecated MCP HTTP+SSE transport needs "
-                        "Authorization: Bearer <key>. Use the Streamable HTTP endpoint /mcp."
-                    ),
-                }
-            },
-        )
-        await response(scope, receive, send)
 
 
 class _LifespanBoundASGIApp:
@@ -376,7 +321,7 @@ def _transport_security_settings(default_base_url: str) -> Any:
 
 
 async def run_http_server(host: str = "127.0.0.1", port: int = 8001) -> None:
-    """Run the MCP server over Streamable HTTP with legacy SSE compatibility."""
+    """Run the MCP server over Streamable HTTP."""
     try:
         import uvicorn
     except ImportError:
@@ -391,14 +336,12 @@ async def run_http_server(host: str = "127.0.0.1", port: int = 8001) -> None:
 
 
 def _build_http_app() -> ASGIApp:
-    from mcp.server import NotificationOptions, Server
-    from mcp.server.models import InitializationOptions
-    from mcp.server.sse import SseServerTransport
+    from mcp.server import Server
     from mcp.server.streamable_http_manager import StreamableHTTPSessionManager
     from mcp.types import CallToolRequestParams, CallToolResult, ListToolsResult, TextContent, Tool
     from starlette.applications import Starlette
     from starlette.responses import JSONResponse
-    from starlette.routing import Mount, Route
+    from starlette.routing import Route
 
     from algenta_mcp import config
     from algenta_mcp.client import request_overrides
@@ -464,36 +407,7 @@ def _build_http_app() -> ASGIApp:
             on_call_tool=handle_call_tool,
         )
 
-    def _build_legacy_transport_endpoints(*, messages_path: str) -> tuple[ASGIApp, ASGIApp]:
-        server = _build_server(use_request_base_url=False)
-        sse_transport = SseServerTransport(messages_path)
-
-        async def sse_endpoint_app(scope: Scope, receive: Receive, send: Send) -> None:
-            async with sse_transport.connect_sse(scope, receive, send) as streams:
-                init_opts = InitializationOptions(
-                    server_name="algenta-mcp",
-                    server_version=config.VERSION,
-                    capabilities=server.get_capabilities(
-                        notification_options=NotificationOptions(),
-                        experimental_capabilities={},
-                    ),
-                )
-                await server.run(streams[0], streams[1], init_opts)
-
-        async def post_message_endpoint_app(
-            scope: Scope,
-            receive: Receive,
-            send: Send,
-        ) -> None:
-            await sse_transport.handle_post_message(scope, receive, send)
-
-        return sse_endpoint_app, post_message_endpoint_app
-
     streamable_http = _LifespanBoundASGIApp()
-    canonical_sse, canonical_messages = _build_legacy_transport_endpoints(
-        messages_path="/mcp/messages"
-    )
-    legacy_sse, legacy_messages = _build_legacy_transport_endpoints(messages_path="/messages")
 
     @asynccontextmanager
     async def lifespan(_: Any):
@@ -524,11 +438,6 @@ def _build_http_app() -> ASGIApp:
             # standalone app used to mount the manager bare, so this app alone executed tools for an
             # unauthenticated caller.
             Route("/mcp", endpoint=_MCPToolCallAuthChallengeASGIApp(streamable_http)),
-            Mount("/mcp/sse", app=_MCPLegacyTransportAuthASGIApp(canonical_sse)),
-            Mount("/mcp/messages", app=_MCPLegacyTransportAuthASGIApp(canonical_messages)),
-            Route("/tools", endpoint=handle_tools),
-            Mount("/sse", app=_MCPLegacyTransportAuthASGIApp(legacy_sse)),
-            Mount("/messages", app=_MCPLegacyTransportAuthASGIApp(legacy_messages)),
         ],
         lifespan=lifespan,
     )
@@ -536,7 +445,7 @@ def _build_http_app() -> ASGIApp:
 
 def _build_fastapi_router() -> APIRouter | None:
     """
-    Return a FastAPI APIRouter mounting Streamable HTTP and legacy SSE at /mcp/*.
+    Return a FastAPI APIRouter mounting Streamable HTTP at /mcp and the tool listing at /mcp/tools.
     Called from apps/api_server/main.py to embed MCP into the main API process.
     Returns a tools-only router if the optional mcp package is not installed.
     """
@@ -550,9 +459,7 @@ def _build_fastapi_router() -> APIRouter | None:
         return None
 
     try:
-        from mcp.server import NotificationOptions, Server
-        from mcp.server.models import InitializationOptions
-        from mcp.server.sse import SseServerTransport
+        from mcp.server import Server
         from mcp.server.streamable_http_manager import StreamableHTTPSessionManager
         from mcp.types import (
             CallToolRequestParams,
@@ -612,32 +519,6 @@ def _build_fastapi_router() -> APIRouter | None:
             responses={503: {"description": "MCP Streamable HTTP transport unavailable."}},
         )
         async def mcp_streamable_http_delete_unavailable() -> JSONResponse:
-            return _mcp_transport_unavailable_response()
-
-        @router.get(
-            "/mcp/sse",
-            summary="Legacy MCP SSE transport unavailable",
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            responses={
-                503: {
-                    "description": "Legacy MCP SSE transport unavailable in this environment."
-                }
-            },
-        )
-        async def mcp_sse_unavailable() -> JSONResponse:
-            return _mcp_transport_unavailable_response()
-
-        @router.post(
-            "/mcp/messages",
-            summary="Legacy MCP message transport unavailable",
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            responses={
-                503: {
-                    "description": "Legacy MCP message transport unavailable in this environment."
-                }
-            },
-        )
-        async def mcp_messages_unavailable() -> JSONResponse:
             return _mcp_transport_unavailable_response()
 
         logger.warning(
@@ -709,28 +590,6 @@ def _build_fastapi_router() -> APIRouter | None:
             on_call_tool=_call_tool,
         )
 
-    mcp_server = _build_server(use_request_base_url=True)
-    sse_transport = SseServerTransport("/mcp/messages")
-
-    async def sse_endpoint_app(scope: Scope, receive: Receive, send: Send) -> None:
-        async with sse_transport.connect_sse(scope, receive, send) as streams:
-            init_opts = InitializationOptions(
-                server_name="algenta-mcp",
-                server_version=config.VERSION,
-                capabilities=mcp_server.get_capabilities(
-                    notification_options=NotificationOptions(),
-                    experimental_capabilities={},
-                ),
-            )
-            await mcp_server.run(streams[0], streams[1], init_opts)
-
-    async def post_message_endpoint_app(
-        scope: Scope,
-        receive: Receive,
-        send: Send,
-    ) -> None:
-        await sse_transport.handle_post_message(scope, receive, send)
-
     streamable_http = _LifespanBoundASGIApp()
 
     @asynccontextmanager
@@ -766,17 +625,4 @@ def _build_fastapi_router() -> APIRouter | None:
         methods=["GET", "POST", "DELETE"],
         name="mcp_streamable_http",
     )
-    router.add_route(
-        "/mcp/sse",
-        _MCPLegacyTransportAuthASGIApp(_CallableASGIApp(sse_endpoint_app)),
-        methods=["GET"],
-        name="mcp_sse",
-    )
-    router.add_route(
-        "/mcp/messages",
-        _MCPLegacyTransportAuthASGIApp(_CallableASGIApp(post_message_endpoint_app)),
-        methods=["POST"],
-        name="mcp_messages",
-    )
-
     return router
