@@ -30,7 +30,7 @@ dependencies = [
     # mcp==2.2.0's own new dependency (a distinct successor package to httpx; non-conflicting with
     # the httpx pin below). mcp-types==2.0.0 resolves transitively via mcp's own hard pin.
     "httpx2>=2.5.0",
-    "fastapi==0.141.1",
+    "fastapi==0.142.2",
     "starlette==1.7.0",
     "uvicorn==0.54.0",
     "httpx>=0.28.0",
