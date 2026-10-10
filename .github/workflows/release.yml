@@ -144,7 +144,7 @@ jobs:
 
       - run: python -m pip install --quiet --disable-pip-version-check --require-hashes -r "$RUNNER_TEMP/release-tooling/release-authorization.txt"
 
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: release-tooling
           path: ${{ runner.temp }}/release-tooling/
@@ -305,7 +305,7 @@ jobs:
           } | tee "$RUNNER_TEMP/subjects.sha256sum"
           echo "hashes=$(base64 -w0 "$RUNNER_TEMP/subjects.sha256sum")" >> "$GITHUB_OUTPUT"
 
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: release-artifacts
           path: |
