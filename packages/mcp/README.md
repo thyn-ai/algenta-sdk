@@ -4,6 +4,8 @@
 
 **Model Context Protocol server for [Algenta](https://algenta.ai) — self-hosted building blocks for AI applications.**
 
+> ⭐ If Algenta saved you time, a [star on GitHub](https://github.com/thyn-ai/algenta-sdk) helps others find it.
+
 Any MCP-capable agent operates the engine — metered and audited like every other caller. This
 server gives MCP-compatible agents access to governed data discovery, exact queries, decisions,
 simulations, runtime utilities, and account operations through the same public API contract used

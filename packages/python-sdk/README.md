@@ -2,6 +2,8 @@
 
 **Python SDK for [Algenta](https://algenta.ai) — self-hosted building blocks for AI applications.**
 
+> ⭐ If Algenta saved you time, a [star on GitHub](https://github.com/thyn-ai/algenta-sdk) helps others find it.
+
 Algenta is the deterministic layer developers build on — a compiled library of mathematical and
 operational functions on custom Mojo kernels, with simulation, planning, memory and governance
 built into the runtime. This package is the Python client for its public API: governed data
