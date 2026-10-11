@@ -2,6 +2,8 @@
 
 # Algenta SDK
 
+> ⭐ If Algenta SDK saved you time, a [star on GitHub](https://github.com/thyn-ai/algenta-sdk) helps others find it.
+
 **Python and TypeScript client libraries and the official MCP server for [Algenta](https://algenta.ai) — self-hosted building blocks for AI applications.**
 
 [![CI](https://github.com/thyn-ai/algenta-sdk/actions/workflows/ci.yml/badge.svg)](https://github.com/thyn-ai/algenta-sdk/actions/workflows/ci.yml)
