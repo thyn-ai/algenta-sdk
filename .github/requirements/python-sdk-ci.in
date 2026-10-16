@@ -18,7 +18,7 @@
 
 # Runtime dependencies of algenta-sdk (pyproject [project].dependencies).
 httpx>=0.28.0
-pydantic>=2.7.0
+pydantic>=2.14.1
 
 # Dev tooling (pyproject [project.optional-dependencies].dev).
 pytest
