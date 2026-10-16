@@ -18,11 +18,19 @@
 
 # Runtime dependencies of algenta-sdk (pyproject [project].dependencies).
 httpx>=0.28.0
-pydantic>=2.7.0
+pydantic>=2.14.1
 
 # Dev tooling (pyproject [project.optional-dependencies].dev).
 pytest
 pytest-asyncio
+
+# Editable-install backend for ci.yml's --no-build-isolation lane: pip builds
+# the package against THIS environment, so setuptools/wheel must be pinned here
+# (mirrors packages/python-sdk/pyproject.toml [build-system].requires). Newer uv
+# no longer injects them implicitly, which broke the lane with
+# BackendUnavailable: Cannot import 'setuptools.build_meta'.
+setuptools>=68.0
+wheel
 pytest-cov
 respx
 black
