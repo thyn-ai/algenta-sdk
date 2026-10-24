@@ -29,7 +29,7 @@ pytest-asyncio
 # (mirrors packages/python-sdk/pyproject.toml [build-system].requires). Newer uv
 # no longer injects them implicitly, which broke the lane with
 # BackendUnavailable: Cannot import 'setuptools.build_meta'.
-setuptools>=68.0
+setuptools>=84.1.0
 wheel
 pytest-cov
 respx
@@ -50,5 +50,5 @@ pip
 # install with --no-build-isolation so the backend comes from this hashed file
 # instead of an unpinned, isolated build environment
 # (pyproject [build-system].requires).
-setuptools>=68.0
+setuptools>=84.1.0
 wheel
