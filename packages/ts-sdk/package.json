@@ -1,6 +1,6 @@
 {
   "name": "algenta-sdk",
-  "version": "1.0.42",
+  "version": "1.0.43",
   "description": "TypeScript and JavaScript SDK for Algenta — self-hosted building blocks for AI applications: the HTTP API, local runtime, simulations, governed data, and repository intelligence",
   "author": { "name": "Thyn", "url": "https://thyn.ai" },
   "main": "dist/index.js",
@@ -73,7 +73,7 @@
     "nanoid": "^3.3.18",
     "postcss": "^8.5.23",
     "protobufjs": "^7.6.5",
-    "qs": "^6.17.1"
+    "qs": "^6.16.0"
   },
   "engines": {
     "node": ">=18.0.0"
