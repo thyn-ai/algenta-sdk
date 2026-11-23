@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "algenta-mcp"
-version = "1.0.46"
+version = "1.0.47"
 description = "Algenta MCP server for Cursor, Codex, and other Model Context Protocol clients. Any MCP-capable agent operates the engine — self-hosted building blocks for AI applications — metered and audited like every other caller."
 readme = "README.md"
 authors = [{ name = "Thyn" }]
@@ -30,7 +30,7 @@ dependencies = [
     # mcp==2.3.0's dependency (a distinct successor package to httpx; non-conflicting with
     # the httpx pin below). mcp-types==2.3.0 resolves transitively via mcp's own hard pin.
     "httpx2>=2.12.0",
-    "fastapi==0.162.6",
+    "fastapi==0.165.0",
     "starlette==1.10.0",
     "uvicorn==0.54.0",
     "httpx>=0.28.0",
