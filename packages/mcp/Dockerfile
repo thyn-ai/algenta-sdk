@@ -8,7 +8,7 @@
 #   docker buildx imagetools inspect python:3.12-slim-bookworm --format '{{.Manifest.Digest}}'
 # Two stages: the build backend (setuptools, wheel) lives only in `builder`; the runtime image
 # receives the finished wheel and the hash-pinned runtime dependencies, nothing that can build code.
-FROM python:3.12-slim-bookworm@sha256:54c85f3c47607a77f32adec749d3c81d1348bf25833671f512b26a9b6d778cb3 AS builder
+FROM python:3.12-slim-bookworm@sha256:e697c81897302a4c4333bade000d98038fbb21eb064f8ee1fd42d02ebcd9d337 AS builder
 
 ENV PIP_NO_CACHE_DIR=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1
@@ -30,7 +30,7 @@ RUN pip install --no-cache-dir --require-hashes -r requirements-build.txt \
     && test "$(find /wheels -maxdepth 1 -name 'algenta_mcp-*.whl' | wc -l)" -eq 1
 
 
-FROM python:3.12-slim-bookworm@sha256:54c85f3c47607a77f32adec749d3c81d1348bf25833671f512b26a9b6d778cb3
+FROM python:3.12-slim-bookworm@sha256:e697c81897302a4c4333bade000d98038fbb21eb064f8ee1fd42d02ebcd9d337
 
 ENV PIP_NO_CACHE_DIR=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
